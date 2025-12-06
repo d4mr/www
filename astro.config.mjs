@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import react from "@astrojs/react";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import expressiveCode from "astro-expressive-code";
@@ -48,7 +47,6 @@ export default defineConfig({
       },
     }),
     mdx(),
-    react(),
     sitemap(),
     icon(),
     pagefind(),

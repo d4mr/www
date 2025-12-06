@@ -10,7 +10,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:ethindia2024.devfolio.co)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(bun remove:*)",
+      "WebFetch(domain:docs.astro.build)"
     ],
     "deny": [],
     "ask": []

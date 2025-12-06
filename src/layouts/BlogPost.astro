@@ -2,7 +2,7 @@
 import Base from "./Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import Comments from "../components/Comments";
+import Comments from "../components/Comments.astro";
 import { formatDate } from "../utils/posts";
 
 interface Props {
@@ -88,7 +88,7 @@ const { title, description, publishDate, updatedDate, tags = [], ogImage } = Ast
           <h2 class="font-mono text-xs tracking-widest uppercase text-[var(--text-muted)] mb-6">
             Comments
           </h2>
-          <Comments client:idle />
+          <Comments />
         </div>
       </footer>
     </article>

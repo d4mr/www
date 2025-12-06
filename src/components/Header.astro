@@ -1,5 +1,5 @@
 ---
-import ThemeToggle from "./ThemeToggle";
+import ThemeToggle from "./ThemeToggle.astro";
 import Search from "./Search.astro";
 
 interface Props {
@@ -33,7 +33,7 @@ const navItems = [
 
     <div class="flex items-center gap-4">
       <Search />
-      <ThemeToggle client:load />
+      <ThemeToggle />
     </div>
   </div>
 

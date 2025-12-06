@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
+import LoadingIndicator from "../components/LoadingIndicator.astro";
 
 interface Props {
   title: string;
@@ -64,7 +65,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       function getTheme() {
         const stored = localStorage.getItem("theme");
         if (stored) return stored;
-        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        return window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
       }
       document.documentElement.setAttribute("data-theme", getTheme());
 
@@ -77,12 +80,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <ClientRouter />
   </head>
   <body class="min-h-screen" data-pagefind-ignore>
+    <LoadingIndicator />
     <slot />
 
-    <!-- Theme initialization after hydration -->
-    <script>
-      import { initTheme } from "../stores/theme";
-      initTheme();
-    </script>
   </body>
 </html>
