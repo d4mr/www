@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
 
 interface Props {
   title: string;
@@ -60,15 +61,20 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Theme initialization (prevents flash) -->
     <script is:inline>
-      (function () {
+      function getTheme() {
         const stored = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
-        ).matches;
-        const theme = stored ?? (prefersDark ? "dark" : "light");
-        document.documentElement.setAttribute("data-theme", theme);
-      })();
+        if (stored) return stored;
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", getTheme());
+
+      document.addEventListener("astro:before-swap", (e) => {
+        const theme = document.documentElement.getAttribute("data-theme");
+        e.newDocument.documentElement.setAttribute("data-theme", theme);
+      });
     </script>
+
+    <ClientRouter />
   </head>
   <body class="min-h-screen" data-pagefind-ignore>
     <slot />

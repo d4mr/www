@@ -207,130 +207,119 @@
 </style>
 
 <script is:inline>
-  const trigger = document.getElementById('search-trigger');
-  const dialog = document.getElementById('search-dialog');
-  const input = document.getElementById('search-input');
-  const results = document.getElementById('search-results');
-  const backdrop = dialog?.querySelector('[data-close]');
+  function initSearch() {
+    const trigger = document.getElementById('search-trigger');
+    const dialog = document.getElementById('search-dialog');
+    const input = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    const backdrop = dialog?.querySelector('[data-close]');
 
-  let pagefind = null;
+    if (!trigger || !dialog) return;
 
-  // Load Pagefind dynamically
-  async function loadPagefind() {
-    if (pagefind) return pagefind;
-    if (window.pagefind) {
-      pagefind = window.pagefind;
-      return pagefind;
-    }
-    try {
-      pagefind = await import('/pagefind/pagefind.js');
-      await pagefind.init();
-      window.pagefind = pagefind;
-      return pagefind;
-    } catch (e) {
-      // Pagefind not available in dev mode
-      return null;
-    }
-  }
-
-  // Open dialog
-  function openSearch() {
-    dialog?.showModal();
-    input?.focus();
-    loadPagefind();
-  }
-
-  // Close dialog
-  function closeSearch() {
-    dialog?.close();
-    if (input) input.value = '';
-    if (results) results.innerHTML = '<div class="search-empty">Type to search...</div>';
-  }
-
-  // Strip HTML tags but keep text
-  function stripHtml(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-  }
-
-  // Perform search
-  let searchTimeout;
-  async function performSearch(query) {
-    if (!results) return;
-
-    if (!query || query.length < 2) {
-      results.innerHTML = '<div class="search-empty">Type to search...</div>';
-      return;
-    }
-
-    const pf = await loadPagefind();
-    if (!pf) {
-      results.innerHTML = '<div class="search-empty">Search available after build</div>';
-      return;
-    }
-
-    results.innerHTML = '<div class="search-loading">Searching...</div>';
-
-    const search = await pf.search(query);
-    const data = await Promise.all(
-      search.results.slice(0, 6).map(r => r.data())
-    );
-
-    if (data.length === 0) {
-      results.innerHTML = '<div class="search-no-results">No results found</div>';
-      return;
-    }
-
-    results.innerHTML = data
-      .map(item => {
-        const title = item.meta?.title || 'Untitled';
-        const url = item.url;
-        const excerpt = item.excerpt || '';
-
-        return `
-          <a href="${url}" class="search-result">
-            <div class="search-result-title">${title}</div>
-            <div class="search-result-excerpt">${excerpt}</div>
-          </a>
-        `;
-      })
-      .join('');
-  }
-
-  // Event listeners
-  trigger?.addEventListener('click', openSearch);
-
-  backdrop?.addEventListener('click', closeSearch);
-
-  dialog?.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeSearch();
-    }
-  });
-
-  input?.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    const query = e.target.value;
-    searchTimeout = window.setTimeout(() => performSearch(query), 200);
-  });
-
-  // Global keyboard shortcut
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      if (dialog?.open) {
-        closeSearch();
-      } else {
-        openSearch();
+    // Load Pagefind dynamically
+    async function loadPagefind() {
+      if (window.pagefind) return window.pagefind;
+      try {
+        const pf = await import('/pagefind/pagefind.js');
+        await pf.init();
+        window.pagefind = pf;
+        return pf;
+      } catch (e) {
+        return null;
       }
     }
-  });
 
-  // Close when clicking a result
-  results?.addEventListener('click', (e) => {
-    if (e.target.closest('.search-result')) {
-      closeSearch();
+    function openSearch() {
+      dialog.showModal();
+      input?.focus();
+      loadPagefind();
     }
-  });
+
+    function closeSearch() {
+      dialog.close();
+      if (input) input.value = '';
+      if (results) results.innerHTML = '<div class="search-empty">Type to search...</div>';
+    }
+
+    let searchTimeout;
+    async function performSearch(query) {
+      if (!results) return;
+
+      if (!query || query.length < 2) {
+        results.innerHTML = '<div class="search-empty">Type to search...</div>';
+        return;
+      }
+
+      const pf = await loadPagefind();
+      if (!pf) {
+        results.innerHTML = '<div class="search-empty">Search available after build</div>';
+        return;
+      }
+
+      results.innerHTML = '<div class="search-loading">Searching...</div>';
+
+      const search = await pf.search(query);
+      const data = await Promise.all(
+        search.results.slice(0, 6).map(r => r.data())
+      );
+
+      if (data.length === 0) {
+        results.innerHTML = '<div class="search-no-results">No results found</div>';
+        return;
+      }
+
+      results.innerHTML = data
+        .map(item => {
+          const title = item.meta?.title || 'Untitled';
+          const url = item.url;
+          const excerpt = item.excerpt || '';
+
+          return `
+            <a href="${url}" class="search-result">
+              <div class="search-result-title">${title}</div>
+              <div class="search-result-excerpt">${excerpt}</div>
+            </a>
+          `;
+        })
+        .join('');
+    }
+
+    trigger.addEventListener('click', openSearch);
+    backdrop?.addEventListener('click', closeSearch);
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSearch();
+    });
+
+    input?.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value;
+      searchTimeout = window.setTimeout(() => performSearch(query), 200);
+    });
+
+    results?.addEventListener('click', (e) => {
+      if (e.target.closest('.search-result')) closeSearch();
+    });
+  }
+
+  // Global keyboard shortcut (only add once)
+  if (!window._searchKeyboardInit) {
+    window._searchKeyboardInit = true;
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const dialog = document.getElementById('search-dialog');
+        if (dialog?.open) {
+          dialog.close();
+        } else {
+          dialog?.showModal();
+          document.getElementById('search-input')?.focus();
+        }
+      }
+    });
+  }
+
+  // Initialize on page load and after transitions
+  initSearch();
+  document.addEventListener('astro:page-load', initSearch);
 </script>
