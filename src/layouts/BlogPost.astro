@@ -21,9 +21,9 @@ const { title, description, publishDate, updatedDate, tags = [], ogImage } = Ast
   <div class="max-w-3xl mx-auto px-6 py-12 md:py-20">
     <Header activeSection="writing" />
 
-    <article class="animate-fade-up stagger-1">
+    <article class="animate-fade-up stagger-1" data-pagefind-body>
       <!-- Post header -->
-      <header class="mb-12">
+      <header class="mb-12" data-pagefind-ignore>
         <div class="flex items-baseline gap-4 mb-4 font-mono text-xs text-[var(--text-muted)]">
           <time datetime={publishDate.toISOString()}>
             {formatDate(publishDate)}
@@ -71,7 +71,7 @@ const { title, description, publishDate, updatedDate, tags = [], ogImage } = Ast
       </div>
 
       <!-- Post footer -->
-      <footer class="mt-16">
+      <footer class="mt-16" data-pagefind-ignore>
         <div class="h-px bg-[var(--border)] mb-12"></div>
 
         <!-- Back to posts -->

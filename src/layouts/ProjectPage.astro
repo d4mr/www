@@ -43,9 +43,9 @@ const { name, tagline, description, coverImage, images = [], year, status, tags,
   <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
     <Header activeSection="projects" />
 
-    <article class="animate-fade-up stagger-1">
+    <article class="animate-fade-up stagger-1" data-pagefind-body>
       <!-- Project header -->
-      <header class="mb-8">
+      <header class="mb-8" data-pagefind-ignore>
         <div class="flex items-baseline gap-4 mb-3 font-mono text-xs text-[var(--text-faint)]">
           <span>{year}</span>
           <span>·</span>
@@ -188,7 +188,7 @@ const { name, tagline, description, coverImage, images = [], year, status, tags,
       )}
 
       <!-- Project footer -->
-      <footer class="mt-16">
+      <footer class="mt-16" data-pagefind-ignore>
         <div class="h-px bg-[var(--border)] mb-12"></div>
 
         <a
