@@ -1,0 +1,57 @@
+---
+title: "Flashblocks Broke Our Assumptions"
+publishDate: 2025-09-12
+description: "How flashblocks and EIP-7702 forced us to rethink transaction infrastructure at thirdweb."
+tags: ["rust", "ethereum", "infrastructure", "web3", "engine-core"]
+---
+
+engine-core is the open source Rust service powering thirdweb's transactions API. Unlike your local web3 client, engine maximizes transaction throughput from a single EOA while providing strong exactly-once delivery guarantees.
+
+This requires some creative approaches.
+
+## The Core Problem with Optimistic Nonces
+
+Here's the key difference: engine sends transactions with optimistically incrementing nonces without waiting for previous transaction responses.
+
+We also can't trust RPC error responses. "Nonce too low" doesn't mean your transaction isn't in the mempool. Blockchain infrastructure lies constantly.
+
+So engine tracks every transaction it's ever sent at each nonce, continuously reconciles against chain state, and handles nonce races when transactions get replaced.
+
+This works great. Until flashblocks.
+
+## The Flashblocks Problem
+
+Engine fetches transaction count to see if the EOA moved (with "pending" blocktag for flashblocks). But we noticed 50ms+ delays between when pending count increases vs when `eth_getTransactionReceipt` actually returns the receipt.
+
+This breaks a core engine assumption.
+
+When `txCount = n` but no receipt exists for nonce `n-1`, engine assumes an external transaction used that nonce. So it moves our "submitted" transactions back to pending to retry.
+
+Duplicate transactions. Even though our transaction did get included, the receipt just wasn't available yet.
+
+## The Solution
+
+Engine now fetches both "pending" and "latest" transaction counts:
+
+- **Pending count**: trusted for early confirmation
+- **Latest count**: required before considering transactions "nonce replaced"
+
+Native flashblocks understanding throughout the system.
+
+## EIP-7702 Made This Even Spicier
+
+Base chains reject multiple inflight transactions for delegated accounts.
+
+EIP-7702 doesn't care about flashblocks. Even if nonce `n` is preconfirmed, you can't send nonce `n+1` until actual confirmation.
+
+What started as a trivial change ended up needing native rebuilding across layers.
+
+## The Curse of Infrastructure
+
+This is the curse of managing reliable infrastructure. Being prepared for and handling dozens of edge cases in the most random places.
+
+What would you rather build: new features for your web3 game, or boring infrastructure that needs to overcome hundreds of these gotchas?
+
+If infrastructure sounds fun to you, we're hiring. But if you're sane and want to focus on your business, leave the boring parts to us.
+
+engine is free and open source: [github.com/thirdweb-dev/engine-core](https://github.com/thirdweb-dev/engine-core)

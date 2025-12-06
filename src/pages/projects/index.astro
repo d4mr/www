@@ -1,0 +1,136 @@
+---
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { Image } from "astro:assets";
+import { getAllProjects } from "../../utils/projects";
+
+const projects = await getAllProjects();
+---
+
+<Base title="Projects — d4mr" description="Selected work and open source contributions.">
+  <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <Header activeSection="projects" />
+
+    <section class="animate-fade-up stagger-1">
+      <h1 class="font-serif text-3xl md:text-4xl font-normal tracking-tight mb-4">
+        Projects
+      </h1>
+      <p class="font-serif text-lg text-[var(--text-muted)] leading-relaxed mb-12">
+        Selected work and open source contributions.
+      </p>
+    </section>
+
+    <!-- Divider -->
+    <div class="mb-12 h-px bg-[var(--border)] animate-fade-in stagger-2"></div>
+
+    <section class="animate-fade-up stagger-2">
+      <div class="space-y-16">
+        {
+          projects.map((project, i) => (
+            <article class:list={[
+            "animate-fade-up",
+            `stagger-${Math.min(i + 3, 6)}`,
+            "hover-lift p-4 -mx-4 rounded transition-all duration-300",
+            "hover:bg-[var(--bg-paper)]"
+          ]}>
+              {/* Project header */}
+              <a
+                href={`/projects/${project.id}`}
+                class="group block"
+              >
+                <div class="flex items-baseline justify-between mb-2">
+                  <h2 class="font-serif text-2xl group-hover:underline decoration-1 underline-offset-4 transition-all duration-300">
+                    {project.data.name}
+                  </h2>
+                  <span class="font-mono text-xs text-[var(--text-faint)]">
+                    {project.data.year}
+                  </span>
+                </div>
+
+                <p class="font-mono text-xs text-[var(--text-muted)] mb-4">
+                  {project.data.tagline}
+                </p>
+
+                {/* Awards as simple text */}
+                {project.data.awards && project.data.awards.length > 0 && (
+                  <p class="font-mono text-[10px] text-[var(--text-faint)] mb-4 tracking-wide">
+                    {project.data.awards.map(a => a.name).join(" · ")}
+                  </p>
+                )}
+
+                {/* Cover image */}
+                <div class="relative overflow-hidden rounded border border-[var(--border)] mb-4 transition-all duration-500 group-hover:border-[var(--text-muted)]">
+                  <Image
+                    src={project.data.coverImage.src}
+                    alt={project.data.coverImage.alt}
+                    class="w-full h-auto transition-transform duration-700 group-hover:scale-[1.02]"
+                    widths={[400, 800]}
+                    sizes="(max-width: 768px) 100vw, 700px"
+                  />
+                </div>
+
+                <p class="font-serif text-sm text-[var(--text-muted)] leading-relaxed mb-3">
+                  {project.data.description}
+                </p>
+
+                {/* Tags as inline text */}
+                <div class="flex flex-wrap gap-x-3 gap-y-1">
+                  {project.data.tags.slice(0, 5).map((tag) => (
+                    <span class="font-mono text-[10px] text-[var(--text-faint)]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </a>
+
+              {/* Links */}
+              <div class="flex gap-4 mt-4 pt-4 border-t border-[var(--border)]">
+                {project.data.links.github && (
+                  <a
+                    href={project.data.links.github}
+                    target="_blank"
+                    rel="noopener"
+                    class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                  >
+                    GitHub ↗
+                  </a>
+                )}
+                {project.data.links.demo && (
+                  <a
+                    href={project.data.links.demo}
+                    target="_blank"
+                    rel="noopener"
+                    class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                  >
+                    Demo ↗
+                  </a>
+                )}
+                {project.data.links.docs && (
+                  <a
+                    href={project.data.links.docs}
+                    target="_blank"
+                    rel="noopener"
+                    class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                  >
+                    Docs ↗
+                  </a>
+                )}
+                <a
+                  href={`/projects/${project.id}`}
+                  class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors ml-auto"
+                >
+                  Read more →
+                </a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="mt-20">
+      <Footer />
+    </div>
+  </div>
+</Base>

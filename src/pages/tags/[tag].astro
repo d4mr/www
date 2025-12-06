@@ -1,0 +1,69 @@
+---
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import PostPreview from "../../components/PostPreview.astro";
+import { getAllTags, getPostsByTag } from "../../utils/posts";
+
+export async function getStaticPaths() {
+  const tags = await getAllTags();
+  return [...tags.keys()].map((tag) => ({
+    params: { tag },
+  }));
+}
+
+const { tag } = Astro.params;
+const posts = await getPostsByTag(tag);
+---
+
+<Base title={`#${tag} — d4mr`} description={`Posts tagged with #${tag}`}>
+  <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <Header activeSection="writing" />
+
+    <section class="animate-fade-up stagger-1">
+      <div class="flex items-baseline gap-4 mb-4">
+        <a
+          href="/tags"
+          class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+        >
+          ← All tags
+        </a>
+      </div>
+      <h1 class="font-serif text-3xl md:text-4xl font-normal tracking-tight mb-4">
+        <span class="text-[var(--text-muted)]">#</span>{tag}
+      </h1>
+      <p class="font-serif text-lg text-[var(--text-muted)] leading-relaxed mb-12">
+        {posts.length} {posts.length === 1 ? "post" : "posts"} tagged with #{tag}
+      </p>
+    </section>
+
+    <!-- Divider -->
+    <div class="mb-12 h-px bg-[var(--border)] animate-fade-in stagger-2"></div>
+
+    <section class="animate-fade-up stagger-2">
+      {
+        posts.length > 0 ? (
+          <div class="space-y-8">
+            {posts.map((post, i) => (
+              <PostPreview
+                title={post.data.title}
+                description={post.data.description}
+                publishDate={post.data.publishDate}
+                slug={post.id}
+                index={i}
+              />
+            ))}
+          </div>
+        ) : (
+          <p class="font-serif text-sm text-[var(--text-muted)] italic">
+            No posts found.
+          </p>
+        )
+      }
+    </section>
+
+    <div class="mt-20">
+      <Footer />
+    </div>
+  </div>
+</Base>

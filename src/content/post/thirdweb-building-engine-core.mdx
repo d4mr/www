@@ -1,0 +1,115 @@
+---
+title: "We Open Sourced engine-core"
+publishDate: 2025-07-16
+description: "2 years and 7 months of learnings distilled into 25k lines of production Rust. This is the best thing I've ever built."
+tags: ["rust", "ethereum", "open-source", "infrastructure", "engine-core"]
+---
+
+We just open sourced engine-core.
+
+2 years and 7 months of our learnings distilled into 25k lines of production Rust. This is the best thing I've ever built as an engineer.
+
+It forms the backbone for the most sophisticated transaction infrastructure on the planet. But it took time to get here.
+
+## The Early Days
+
+We realized early that building anything non-trivial in web3 requires proper backend primitives.
+
+engine v1 was pioneering. But also pioneeringly naive.
+
+### v1: Sequential Sends and Postgres Era
+
+Wait for each nonce response before sending. It worked but was painfully slow.
+
+### v2: BullMQ Jobs
+
+One job equals one transaction. Increment cached nonce and pray.
+
+But RPC issues would spiral into thousands of recycled nonces and we'd be drowning. So many nights lost to debugging nonce sync hell. Workers crashing midsend, transactions disappearing into the Ethereum dark forest. Nonce gaps everywhere.
+
+Coordination complexity was killing us. Distributed locks, epoch mechanisms, health state sharing between jobs just to send one fucking transaction.
+
+## The Breakthrough
+
+Then came the breakthrough that changed everything.
+
+Instead of coordinating jobs fighting over the same EOA like hungry children, just schedule the EOA itself as the unit of work.
+
+One job owns the entire EOA, processes everything.
+
+Took months to see it but felt so obvious after. It's a distributed scheduler where EOAs are green threads waiting for CPU time. Each gets full context when scheduled:
+
+1. Recover midsend transactions from crashes
+2. Confirm latest onchain nonce
+3. Drain recycled nonces
+4. Send new transactions up to inflight limit
+5. Yield gracefully
+
+All that coordination complexity just vanished overnight. No more distributed locks, no more epoch mechanisms, no more health sharing hell.
+
+The flow became poetry: recover, confirm, send, yield.
+
+## Why Rust
+
+Fearless concurrency made this possible. The borrow checker held my hand while I built something bulletproof.
+
+engine v1 and v2 was TypeScript. v3 needed more.
+
+We needed a distributed store to power our "distributed scheduler". Nothing like this existed yet, so we also wrote twmq, a lightweight durable execution "runtime" backed by Redis.
+
+Yes, inside of engine-core also lies a fucking BullMQ-lite.
+
+## The State Machine
+
+EOA execution is this 5-state machine:
+```
+Pending → Borrowed → Submitted → Confirmed
+    ↓         ↓          ↓
+  Failed ← Failed  ←  Failed
+```
+
+The borrowed state is what makes crash recovery work (like a WAL). Transactions can't get lost between workers.
+
+I wrote twmq because nothing in Rust had the queue semantics we needed. Blazingly fast. Lightweight durability guarantees. Easy 100k+ no-op jobs per second. Casually beats BullMQ for base benchmarks.
+
+Of course BullMQ has more features, but twmq has the features we needed.
+
+## Fleet Architecture
+
+The composability of this is nuts.
+
+Combine EOAs together to build a fleet executor, handle any scale you throw at it. Fleet architecture becomes pure poetry with this model:
+
+- EOAs steal work from one communal pending queue
+- Hit problems? Stop pulling new work, fleet detects health issues and autospawns replacement EOAs
+- Failed transactions flow back to the communal queue for any healthy EOA to grab
+
+This plus the thirdweb stack gives you ERC-4337 account abstraction, gasless transactions via thirdweb paymasters, ERC-1271/6492 signatures, ERC-7702 execution, auto smart contract ABI resolution so you just specify method names and params.
+
+It's the complete blockchain execution runtime.
+
+## The Hard Lessons
+
+3am prod incidents that taught me Ethereum's 47 different ways to lie to you. Redis Lua scripts that took weeks to perfect. Every weird failure mode Ethereum threw at us, every nonce race condition. All handled now with surgical precision.
+
+The self serve observability is unbelievable. Detailed activity logs for every transaction, webhook delivery guarantees, real-time status updates. See exactly what happened to every single transaction in your system. No black box pray and hope for the best.
+
+## Gratitude
+
+Still hard to believe this exists.
+
+Imagine walking up to your manager and telling them that you, a person with no previous Rust production experience, wants to now go disappear and "rewrite it in Rust".
+
+I'm incredibly grateful for a place like thirdweb that lets magic happen. Letting me challenge every assumption, and build something lasting from grassroots. This is how you build the state of the art: by letting engineers chase their deepest technical vision without other bullshit getting in the way.
+
+## What's Next
+
+engine v3 is going to be stupid reliable. 99.9% success rates in production, sub-second confirmations, zero nonce gaps. This powers our transactions API and will soon be available for direct EOA execution.
+
+The future of blockchain infrastructure is here.
+
+Couldn't have happened without the incredible Rust ecosystem: alloy building the best Rust EVM primitives, serde for blazingly fast serialization, tokio for async heaven, redis for bulletproof persistence. Standing on the shoulders of giants while building something entirely new.
+
+My baby is finally ready for the world: [github.com/thirdweb-dev/engine-core](https://github.com/thirdweb-dev/engine-core)
+
+25k lines of love, sweat, and Rust. On top of another 20k lines of state-of-the-art TEE based non-custodial KMS. But that's a post for later.

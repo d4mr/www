@@ -1,0 +1,33 @@
+---
+const currentYear = new Date().getFullYear();
+
+const socialLinks = [
+  { href: "https://x.com/earth_ish", label: "X" },
+  { href: "https://github.com/d4mr", label: "GitHub" },
+  { href: "/rss.xml", label: "RSS" },
+];
+---
+
+<footer
+  class="pt-8 border-t border-[var(--border)] animate-fade-in stagger-6"
+>
+  <div class="flex items-center justify-between">
+    <p class="font-mono text-xs text-[var(--text-faint)]">
+      © {currentYear}
+    </p>
+    <div class="flex gap-6 font-mono text-xs text-[var(--text-muted)]">
+      {
+        socialLinks.map((link) => (
+          <a
+            href={link.href}
+            class="hover:underline underline-offset-4"
+            target={link.href.startsWith("http") ? "_blank" : undefined}
+            rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</footer>

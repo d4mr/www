@@ -1,0 +1,43 @@
+---
+import { formatDate } from "../utils/posts";
+
+interface Props {
+  title: string;
+  description: string;
+  publishDate: Date;
+  slug: string;
+  readingTime?: string;
+  index?: number;
+}
+
+const { title, description, publishDate, slug, readingTime = "3 min", index = 0 } = Astro.props;
+---
+
+<article
+  class:list={[
+    "group cursor-pointer hover-lift p-4 -mx-4 rounded transition-colors duration-300",
+    "hover:bg-[var(--bg-paper)]",
+    "animate-fade-up",
+    `stagger-${Math.min(index + 3, 6)}`,
+  ]}
+>
+  <a href={`/posts/${slug}`} class="block">
+    <div class="flex items-baseline gap-4 mb-2">
+      <time class="font-mono text-xs text-[var(--text-muted)]">
+        {formatDate(publishDate)}
+      </time>
+      <span class="font-mono text-xs text-[var(--text-faint)]">·</span>
+      <span class="font-mono text-xs text-[var(--text-muted)]">
+        {readingTime}
+      </span>
+    </div>
+    <h3
+      class="font-serif text-lg mb-2 group-hover:underline decoration-1 underline-offset-4"
+    >
+      {title}
+    </h3>
+    <p class="font-serif text-sm text-stone-500">
+      {description}
+    </p>
+  </a>
+</article>

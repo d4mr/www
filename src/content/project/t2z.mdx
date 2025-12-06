@@ -1,0 +1,25 @@
+---
+name: "t2z"
+tagline: "Transparent to shielded Zcash"
+description: "Multi-platform library for constructing Zcash transactions from transparent inputs to shielded Orchard outputs. Unified Rust core, WASM for web."
+coverImage:
+  src: "../../assets/projects/t2z/t2z_hero.png"
+  alt: "t2z"
+year: "2024"
+status: "active"
+tags: ["rust", "zcash", "privacy", "wasm", "cryptography"]
+links:
+  demo: "https://t2z.d4mr.com"
+featured: true
+featuredOrder: 3
+awards:
+  - name: "Zypherpunk Hackathon"
+    event: "Zypherpunk"
+    year: "2024"
+---
+
+Built for the Zypherpunk hackathon. Implements ZIP-374 PCZT format for multi-party transaction construction.
+
+No large proving key downloads. Orchard uses Halo 2 with programmatic key generation. Enables existing transparent-only infrastructure to upgrade privacy without full wallet reimplementation.
+
+SDKs for TypeScript (WASM), Go, and Kotlin via UniFFI.

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(bunx create-astro@latest:*)",
+      "Bash(bun add:*)",
+      "WebFetch(domain:devfolio.co)",
+      "WebFetch(domain:expressive-code.com)",
+      "Bash(curl:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:ethindia2024.devfolio.co)",
+      "Bash(ls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

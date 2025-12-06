@@ -1,0 +1,149 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import PostPreview from "../components/PostPreview.astro";
+import { Image } from "astro:assets";
+import { getAllPosts } from "../utils/posts";
+import { getFeaturedProjects } from "../utils/projects";
+
+const posts = await getAllPosts();
+const recentPosts = posts.slice(0, 3);
+const featuredProjects = await getFeaturedProjects();
+---
+
+<Base title="Prithvish Baidya — blockchain engineer">
+  <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <Header activeSection="home" />
+
+    <!-- Introduction -->
+    <section class="mb-20 animate-fade-up stagger-1">
+      <p class="font-serif text-lg md:text-xl leading-relaxed font-light">
+        I build decentralized systems and the infrastructure that makes them
+        usable. Currently working on
+        <span class="italic text-[var(--text-muted)]">developer tooling</span>
+        and
+        <span class="italic text-[var(--text-muted)]"
+          >key management</span
+        > for blockchain applications.
+      </p>
+      <p class="font-mono text-xs text-[var(--text-faint)] mt-4">
+        You might also know me as earthish or d4mr (deformer).
+      </p>
+    </section>
+
+    <!-- Divider -->
+    <div class="mb-16 h-px bg-[var(--border)] animate-fade-in stagger-2"></div>
+
+    <!-- Writing Section -->
+    <section class="mb-20 animate-fade-up stagger-2">
+      <div class="flex items-baseline justify-between mb-8">
+        <h2
+          class="font-mono text-xs tracking-widest uppercase text-[var(--text-muted)]"
+        >
+          Recent Writing
+        </h2>
+        <a
+          href="/posts"
+          class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
+        >
+          ↗
+        </a>
+      </div>
+
+      <div class="space-y-8">
+        {
+          recentPosts.length > 0 ? (
+            recentPosts.map((post, i) => (
+              <PostPreview
+                title={post.data.title}
+                description={post.data.description}
+                publishDate={post.data.publishDate}
+                slug={post.id}
+                index={i}
+              />
+            ))
+          ) : (
+            <p class="font-serif text-sm text-[var(--text-muted)] italic">
+              No posts yet. Check back soon.
+            </p>
+          )
+        }
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="mb-20 animate-fade-up stagger-5">
+      <div class="flex items-baseline justify-between mb-8">
+        <h2
+          class="font-mono text-xs tracking-widest uppercase text-[var(--text-muted)]"
+        >
+          Selected Work
+        </h2>
+        <a
+          href="/projects"
+          class="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
+        >
+          ↗
+        </a>
+      </div>
+
+      <div class="space-y-12">
+        {
+          featuredProjects.map((project) => (
+            <article class="hover-lift p-4 -mx-4 rounded transition-all duration-300 hover:bg-[var(--bg-paper)]">
+              <a
+                href={`/projects/${project.id}`}
+                class="group block"
+              >
+                <div class="flex items-baseline justify-between mb-2">
+                  <h3 class="font-serif text-xl group-hover:underline decoration-1 underline-offset-4 transition-all duration-300">
+                    {project.data.name}
+                  </h3>
+                  <span class="font-mono text-xs text-[var(--text-faint)]">
+                    {project.data.year}
+                  </span>
+                </div>
+
+                <p class="font-mono text-xs text-[var(--text-muted)] mb-3">
+                  {project.data.tagline}
+                </p>
+
+                {project.data.awards && project.data.awards.length > 0 && (
+                  <p class="font-mono text-[10px] text-[var(--text-faint)] mb-3 tracking-wide">
+                    {project.data.awards.map(a => a.name).join(" · ")}
+                  </p>
+                )}
+
+                <div class="overflow-hidden rounded border border-[var(--border)] transition-all duration-500 group-hover:border-[var(--text-muted)]">
+                  <Image
+                    src={project.data.coverImage.src}
+                    alt={project.data.coverImage.alt}
+                    class="w-full h-auto transition-transform duration-700 group-hover:scale-[1.02]"
+                    widths={[400, 800]}
+                    sizes="(max-width: 768px) 100vw, 700px"
+                  />
+                </div>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="mb-16 animate-fade-up stagger-6">
+      <div class="p-6 rounded-sm bg-[var(--bg-paper)]">
+        <p class="font-serif text-sm mb-4 text-[var(--text-muted)]">
+          Open to thoughtful conversations about engineering, design, or
+          collaboration.
+        </p>
+        <a href="https://x.com/earth_ish" target="_blank" rel="noopener" class="font-mono text-xs link-underline">
+          Send me a DM on X
+        </a>
+      </div>
+    </section>
+
+    <Footer />
+  </div>
+</Base>

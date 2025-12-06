@@ -1,0 +1,33 @@
+---
+import { getCollection, render } from "astro:content";
+import ProjectPage from "../../layouts/ProjectPage.astro";
+import { getRelatedPosts } from "../../utils/projects";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("project");
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const relatedPosts = await getRelatedPosts(project);
+---
+
+<ProjectPage
+  name={project.data.name}
+  tagline={project.data.tagline}
+  description={project.data.description}
+  coverImage={project.data.coverImage}
+  images={project.data.images}
+  year={project.data.year}
+  status={project.data.status}
+  tags={project.data.tags}
+  links={project.data.links}
+  awards={project.data.awards}
+  relatedPosts={relatedPosts}
+>
+  <Content />
+</ProjectPage>
