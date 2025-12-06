@@ -8,14 +8,14 @@ export default function Comments() {
   return (
     <Giscus
       id="comments"
-      repo="d4mr/d4mr-web" // Update with your repo
-      repoId="" // Get from giscus.app
-      category="Announcements" // Update as needed
-      categoryId="" // Get from giscus.app
+      repo="d4mr/www"
+      repoId="R_kgDOQje2Nw"
+      category="comments"
+      categoryId="DIC_kwDOQje2N84CzdSs"
       mapping="pathname"
       strict="0"
       reactionsEnabled="1"
-      emitMetadata="0"
+      emitMetadata="1"
       inputPosition="top"
       theme={theme === "dark" ? "dark" : "light"}
       lang="en"
