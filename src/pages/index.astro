@@ -1,4 +1,5 @@
 ---
+import { render } from "astro:content";
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -9,6 +10,15 @@ import { getFeaturedProjects } from "../utils/projects";
 
 const posts = await getAllPosts();
 const recentPosts = posts.slice(0, 3);
+const recentPostsWithReadingTime = await Promise.all(
+  recentPosts.map(async (post) => {
+    const { remarkPluginFrontmatter } = await render(post);
+    return {
+      ...post,
+      minutesRead: remarkPluginFrontmatter.minutesRead,
+    };
+  })
+);
 const featuredProjects = await getFeaturedProjects();
 ---
 
@@ -53,13 +63,14 @@ const featuredProjects = await getFeaturedProjects();
 
       <div class="space-y-8">
         {
-          recentPosts.length > 0 ? (
-            recentPosts.map((post, i) => (
+          recentPostsWithReadingTime.length > 0 ? (
+            recentPostsWithReadingTime.map((post, i) => (
               <PostPreview
                 title={post.data.title}
                 description={post.data.description}
                 publishDate={post.data.publishDate}
                 slug={post.id}
+                readingTime={post.minutesRead}
                 index={i}
               />
             ))

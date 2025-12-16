@@ -8,6 +8,7 @@ import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import { pluginLanguageLabel } from "./src/plugins/expressive-code-language-label";
 import icon from "astro-icon";
 import pagefind from "astro-pagefind";
+import { remarkReadingTime } from "./remark-reading-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -55,7 +56,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   markdown: {
-    remarkPlugins: [],
+    remarkPlugins: [remarkReadingTime],
     rehypePlugins: [],
   },
   prefetch: true,

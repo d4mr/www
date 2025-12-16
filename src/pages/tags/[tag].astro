@@ -1,4 +1,5 @@
 ---
+import { render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
@@ -14,6 +15,15 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params;
 const posts = await getPostsByTag(tag);
+const postsWithReadingTime = await Promise.all(
+  posts.map(async (post) => {
+    const { remarkPluginFrontmatter } = await render(post);
+    return {
+      ...post,
+      minutesRead: remarkPluginFrontmatter.minutesRead,
+    };
+  })
+);
 ---
 
 <Base title={`#${tag} — d4mr`} description={`Posts tagged with #${tag}`}>
@@ -42,14 +52,15 @@ const posts = await getPostsByTag(tag);
 
     <section class="animate-fade-up stagger-2">
       {
-        posts.length > 0 ? (
+        postsWithReadingTime.length > 0 ? (
           <div class="space-y-8">
-            {posts.map((post, i) => (
+            {postsWithReadingTime.map((post, i) => (
               <PostPreview
                 title={post.data.title}
                 description={post.data.description}
                 publishDate={post.data.publishDate}
                 slug={post.id}
+                readingTime={post.minutesRead}
                 index={i}
               />
             ))}

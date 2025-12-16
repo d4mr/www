@@ -12,9 +12,10 @@ interface Props {
   updatedDate?: Date;
   tags?: string[];
   ogImage?: string;
+  minutesRead?: string;
 }
 
-const { title, description, publishDate, updatedDate, tags = [], ogImage } = Astro.props;
+const { title, description, publishDate, updatedDate, tags = [], ogImage, minutesRead } = Astro.props;
 ---
 
 <Base title={`${title} — d4mr`} description={description} ogImage={ogImage}>
@@ -28,6 +29,14 @@ const { title, description, publishDate, updatedDate, tags = [], ogImage } = Ast
           <time datetime={publishDate.toISOString()}>
             {formatDate(publishDate)}
           </time>
+          {
+            minutesRead && (
+              <>
+                <span class="text-[var(--text-faint)]">·</span>
+                <span>{minutesRead}</span>
+              </>
+            )
+          }
           {
             updatedDate && (
               <>

@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, remarkPluginFrontmatter } = await render(post);
 ---
 
 <BlogPost
@@ -20,7 +20,8 @@ const { Content } = await render(post);
   publishDate={post.data.publishDate}
   updatedDate={post.data.updatedDate}
   tags={post.data.tags}
-  ogImage={post.data.ogImage}
+  ogImage={post.data.ogImage ?? `/og/${post.id}.png`}
+  minutesRead={remarkPluginFrontmatter.minutesRead}
 >
   <Content />
 </BlogPost>

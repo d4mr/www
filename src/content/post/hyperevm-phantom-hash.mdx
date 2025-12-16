@@ -1,0 +1,155 @@
+---
+title: "The Case of the Phantom Hash"
+publishDate: 2025-12-16
+description: "How I discovered HyperEVM system transactions have two valid hashes, and the rabbit hole that led me into nanoreth's source code."
+tags: ["ethereum", "hyperliquid", "debugging"]
+---
+
+## The Problem
+
+I was building an indexer that correlates Hyperliquid L1 transfers with their corresponding HyperEVM transactions. Simple enough: find the EVM transaction, store the hash, link them together.
+
+Except the hashes didn't match.
+
+I'd query the official Hyperliquid RPC for a system transaction, get its hash, then try to look it up on Hyperscan or HyperEVM Scan. Nothing. The transaction existed, I could see it on-chain, but the explorers had no idea what I was talking about.
+
+At first I assumed I was doing something wrong. Wrong encoding, wrong field order, something. But I verified my computation against the official RPC response. The hash matched exactly.
+
+So why couldn't the explorers find it?
+
+## The Inconsistency
+
+Let's look at a concrete example. Mainnet block #21700032 has a system transaction. Here's what the official Hyperliquid RPC returns:
+
+```bash
+curl -s -X POST https://rpc.hyperliquid.xyz/evm \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"eth_getSystemTxsByBlockNumber","params":["0x14b1dc0"]}'
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "type": "0x0",
+      "chainId": "0x3e7",
+      "nonce": "0x9b1",
+      "gasPrice": "0x0",
+      "gas": "0x30d40",
+      "to": "0x6b9e773128f453f5c2c60935ee2de2cbc5390a24",
+      "value": "0x0",
+      "input": "0xa9059cbb000000000000000000000000ee779321bdba95d0758d60e066bad2b25e77aec900000000000000000000000000000000000000000000000000000000125e8ff9",
+      "r": "0x0",
+      "s": "0x0",
+      "v": "0x7f1",
+      "hash": "0xb5a944a7bb3ae9c3d8cf91dbd6aacdaff6854a83735f967c1ea3763710d5a9c7",
+      "blockHash": "0xe4ca1b7a7b6580301ca6b28f7ee6571693d481c350f742da5d2a08dfc63f23e2",
+      "blockNumber": "0x14b1dc0",
+      "transactionIndex": "0x0",
+      "from": "0x2000000000000000000000000000000000000000"
+    }
+  ]
+}
+```
+
+The official hash is `0xb5a944...`. Note the signature values: `r=0x0`, `s=0x0`, `v=0x7f1` (2033 in decimal, which is `chainId * 2 + 35` for chainId 999).
+
+But both [Hyperscan](https://www.hyperscan.com/block/0xe4ca1b7a7b6580301ca6b28f7ee6571693d481c350f742da5d2a08dfc63f23e2) and [HyperEVM Scan](https://hyperevmscan.io/block/21700032) show a different hash for this exact transaction:
+
+`0xa74e9e2737a64e293bf99747ec8816c9260e32faf176afe9010bdf8f129d4bac`
+
+Same block, same transaction data, two different hashes.
+
+## Understanding HyperEVM Infrastructure
+
+To understand why this happens, you need to know how HyperEVM infrastructure works.
+
+Hyperliquid doesn't run traditional archive nodes with historical RPC access. Instead, they publish block data to S3. The official RPC only serves recent data. This means existing block explorers can't just connect to a standard endpoint and index everything.
+
+Enter [nanoreth](https://github.com/hyperliquid-dex/nanoreth), a community tool that reads this S3 block data and exposes it as a standard Ethereum RPC. This lets block explorers work with HyperEVM as if it were a normal EVM chain.
+
+The catch? The S3 data doesn't include transaction hashes. It only provides the raw transaction fields including `v`, `r`, and `s` values. nanoreth has to compute the hashes itself.
+
+And here's where things diverge.
+
+## Down the Rabbit Hole
+
+Transaction hashes are computed by RLP encoding the transaction fields and taking the keccak256 hash. For legacy transactions:
+
+```typescript
+keccak256(RLP([nonce, gasPrice, gas, to, value, input, v, r, s]))
+```
+
+The hash depends entirely on these inputs. Change any field, you get a different hash.
+
+System transactions aren't signed by users. They're protocol-level transactions from addresses like `0x2000...0000`, bridging assets into the EVM. There's no private key involved, so what values do you use for the signature fields?
+
+The official Hyperliquid data uses:
+
+```
+r = 0
+s = 0
+v = chainId * 2 + 35
+```
+
+If you compute the hash using these values, you get the official hash: `0xb5a944...`
+
+## Finding the Divergence
+
+nanoreth takes a different approach. From their README:
+
+> ⚠️ IMPORTANT: System Transactions Appear as Pseudo Transactions
+>
+> Deposit transactions from System Addresses like 0x222..22 / 0x200..xx to user addresses are intentionally recorded as pseudo transactions. This change simplifies block explorers, making it easier to track deposit timestamps.
+
+Digging through the nanoreth source, I found that these pseudo transactions are encoded with:
+
+```
+r = 1
+s = fromAddress (the system address as a uint256)
+v = chainId * 2 + 36
+```
+
+The v is off by 1 (36 instead of 35), r is 1 instead of 0, and s encodes the originating system address (e.g. `0x2222...` for HYPE transfers). That's enough to produce a completely different hash: `0xa74e9e...`
+
+Both are valid encodings. Neither is "wrong." They're just different conventions for representing unsigned system transactions.
+
+## The Solution
+
+For my indexer, I needed to decide which convention to use. Since I was correlating L1 data with explorer links, I needed the nanoreth hash:
+
+```typescript
+// Official hash (Hyperliquid RPC)
+const officialHash = keccak256(rlpEncode({
+  ...txFields,
+  r: 0n,
+  s: 0n,
+  v: chainId * 2n + 35n
+}));
+
+// Pseudo transaction hash (nanoreth/explorers)
+const explorerHash = keccak256(rlpEncode({
+  ...txFields,
+  r: 1n,
+  s: fromAddress, // system address as uint256
+  v: chainId * 2n + 36n
+}));
+```
+
+I ended up storing both, using the official hash as the canonical identifier and the explorer hash for generating links.
+
+## Conclusion
+
+The debugging process was:
+
+1. Notice hashes don't match between official RPC and explorers
+2. Verify my computation matches the official RPC exactly
+3. Realize explorers use nanoreth, which reads from S3, not the official RPC
+4. Discover S3 data doesn't include hashes, only v/r/s values
+5. Find that nanoreth uses different v/r/s conventions for system transactions
+
+The lesson: when dealing with custom blockchain infrastructure, don't assume a single source of truth. HyperEVM has two valid hash conventions for system transactions, and which one you need depends on what you're trying to do.
+
+The phantom hash wasn't a ghost. It was just computed differently.
