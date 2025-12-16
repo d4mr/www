@@ -9,6 +9,7 @@ import { pluginLanguageLabel } from "./src/plugins/expressive-code-language-labe
 import icon from "astro-icon";
 import pagefind from "astro-pagefind";
 import { remarkReadingTime } from "./remark-reading-time.mjs";
+import rehypeExternalLinks from "rehype-external-links";
 
 // https://astro.build/config
 export default defineConfig({
@@ -57,7 +58,9 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: [remarkReadingTime],
-    rehypePlugins: [],
+    rehypePlugins: [
+      [rehypeExternalLinks, { target: "_blank", rel: ["noopener", "noreferrer"] }],
+    ],
   },
   prefetch: true,
 });
