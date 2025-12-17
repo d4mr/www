@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+/* Self-hosted fonts (woff2 from Google Fonts, latin subset) */
+@font-face {
+  font-family: "Newsreader";
+  src: url("/fonts/Newsreader-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Newsreader";
+  src: url("/fonts/Newsreader-italic-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Tailwind v4 theme configuration */
 @theme {
   /* Font families */
