@@ -18,7 +18,15 @@ interface Props {
 const { title, description, publishDate, updatedDate, tags = [], ogImage, minutesRead } = Astro.props;
 ---
 
-<Base title={`${title} — d4mr`} description={description} ogImage={ogImage}>
+<Base 
+  title={`${title} — d4mr`} 
+  description={description} 
+  ogImage={ogImage}
+  type="article"
+  publishedTime={publishDate}
+  modifiedTime={updatedDate}
+  tags={tags}
+>
   <div class="max-w-3xl mx-auto px-6 py-12 md:py-20">
     <Header activeSection="writing" />
 
