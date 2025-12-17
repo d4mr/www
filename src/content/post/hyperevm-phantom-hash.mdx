@@ -70,7 +70,7 @@ To understand why this happens, you need to know how HyperEVM infrastructure wor
 
 Hyperliquid doesn't run traditional archive nodes with historical RPC access. Instead, they publish block data to S3. The official RPC only serves recent data. This means existing block explorers can't just connect to a standard endpoint and index everything.
 
-Enter [nanoreth](https://github.com/hyperliquid-dex/nanoreth), a community tool that reads this S3 block data and exposes it as a standard Ethereum RPC. This lets block explorers work with HyperEVM as if it were a normal EVM chain.
+Enter [nanoreth](https://github.com/hl-archive-node/nanoreth), a community tool that reads this S3 block data and exposes it as a standard Ethereum RPC. This lets block explorers work with HyperEVM as if it were a normal EVM chain.
 
 The catch? The S3 data doesn't include transaction hashes. It only provides the raw transaction fields including `v`, `r`, and `s` values. nanoreth has to compute the hashes itself.
 
