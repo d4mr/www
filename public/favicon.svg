@@ -1,10 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="4" fill="#292524"/>
-  <text x="50%" y="55%" dominant-baseline="central" text-anchor="middle" fill="#d6d3d1" font-family="Georgia, serif" font-size="18" font-weight="400">P</text>
-  <style>
-    @media (prefers-color-scheme: light) {
-      rect { fill: #f5f5f4; }
-      text { fill: #292524; }
-    }
-  </style>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="32" height="32"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Cream background -->
+  <rect width="32" height="32" fill="#f5f5f4"></rect>
+  <!-- Outer border -->
+  <rect x="6" y="6" width="20" height="20" fill="none" stroke="#c44d4d" stroke-width="1.5"></rect>
+  <!-- Inner border -->
+  <rect x="8.5" y="8.5" width="15" height="15" fill="none" stroke="#c44d4d" stroke-width="0.75"></rect>
+  <!-- 四 character -->
+  <text x="50%" y="54%" dominant-baseline="central" text-anchor="middle" fill="#c44d4d" font-family="serif" font-size="11" font-weight="400">四</text>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
