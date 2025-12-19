@@ -25,10 +25,19 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Tailwind v4 theme configuration */
 @theme {
   /* Font families */
   --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "Geist", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* Custom colors - light mode defaults */
@@ -62,6 +71,7 @@
   --text-faint: var(--color-text-faint);
   --border: var(--color-border);
   --accent: var(--color-accent);
+  --accent-pop: #c44d4d;
 }
 
 [data-theme="dark"] {
@@ -72,6 +82,7 @@
   --text-faint: var(--color-text-faint-dark);
   --border: var(--color-border-dark);
   --accent: var(--color-accent-dark);
+  --accent-pop: #4db88a;
 }
 
 /* Base styles */
@@ -467,6 +478,57 @@ body::before {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  margin: 2em 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  border-collapse: collapse;
+}
+
+.prose thead {
+  border-bottom: 1px solid var(--border);
+}
+
+.prose th {
+  font-weight: 500;
+  text-align: left;
+  padding: 0.75em 1em;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prose td {
+  padding: 0.75em 1em;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.prose tbody tr:hover {
+  background-color: var(--bg-paper);
+}
+
+/* TOC scrollbar hide */
+.toc-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.toc-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
 }
 
 /* Focus styles */

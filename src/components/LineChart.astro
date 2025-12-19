@@ -1,0 +1,240 @@
+---
+export interface DataPoint {
+  label: string;
+  value: number;
+}
+
+export interface Props {
+  /** Array of data points with label and value */
+  data: DataPoint[];
+  /** Chart title (optional) */
+  title?: string;
+  /** Y-axis label (optional) */
+  yAxisLabel?: string;
+  /** Minimum Y value (auto-calculated if not provided) */
+  yMin?: number;
+  /** Maximum Y value (auto-calculated if not provided) */
+  yMax?: number;
+  /** Step between Y-axis ticks (default: auto) */
+  yTickStep?: number;
+  /** Show percentage sign on Y-axis labels */
+  showPercentage?: boolean;
+  /** Caption text below the chart */
+  caption?: string;
+  /** Show dots on data points (default: true) */
+  showDots?: boolean;
+  /** Show area fill under the line (default: true) */
+  showArea?: boolean;
+  /** Highlight negative values in red (default: true) */
+  highlightNegative?: boolean;
+  /** Number of X-axis labels to skip (default: auto based on data length) */
+  xLabelSkip?: number;
+}
+
+const {
+  data,
+  title,
+  yAxisLabel,
+  yMin: yMinProp,
+  yMax: yMaxProp,
+  yTickStep,
+  showPercentage = false,
+  caption,
+  showDots = true,
+  showArea = true,
+  highlightNegative = true,
+  xLabelSkip: xLabelSkipProp,
+} = Astro.props;
+
+// Chart dimensions
+const width = 600;
+const height = 300;
+const padding = { top: title ? 40 : 20, right: 40, bottom: 50, left: 60 };
+const chartWidth = width - padding.left - padding.right;
+const chartHeight = height - padding.top - padding.bottom;
+
+// Calculate Y range
+const values = data.map(d => d.value);
+const dataMin = Math.min(...values);
+const dataMax = Math.max(...values);
+const yPadding = (dataMax - dataMin) * 0.1 || 5;
+
+const yMin = yMinProp ?? Math.floor((dataMin - yPadding) / 5) * 5;
+const yMax = yMaxProp ?? Math.ceil((dataMax + yPadding) / 5) * 5;
+const yRange = yMax - yMin;
+
+// Generate Y-axis ticks
+const step = yTickStep ?? Math.ceil(yRange / 6 / 5) * 5;
+const yTicks: number[] = [];
+for (let tick = Math.ceil(yMin / step) * step; tick <= yMax; tick += step) {
+  yTicks.push(tick);
+}
+
+// Scale functions
+const scaleX = (i: number) => padding.left + (i / (data.length - 1)) * chartWidth;
+const scaleY = (y: number) => padding.top + chartHeight - ((y - yMin) / yRange) * chartHeight;
+
+// Generate unique ID for this chart instance (for clip paths)
+const chartId = `chart-${Math.random().toString(36).substr(2, 9)}`;
+
+// Generate path
+const pathD = data.map((point, i) => {
+  const x = scaleX(i);
+  const y = scaleY(point.value);
+  return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+}).join(' ');
+
+// Area fill path
+const zeroY = scaleY(0);
+const areaD = `${pathD} L ${scaleX(data.length - 1)} ${zeroY} L ${scaleX(0)} ${zeroY} Z`;
+
+// X-axis label skip (show fewer labels if there are many data points)
+const xLabelSkip = xLabelSkipProp ?? (data.length > 12 ? 2 : data.length > 6 ? 1 : 0);
+const xTicks = data.filter((_, i) => i % (xLabelSkip + 1) === 0);
+
+// Check if we have negative values
+const hasNegative = values.some(v => v < 0);
+---
+
+<figure class="my-8">
+  <svg 
+    viewBox={`0 0 ${width} ${height}`} 
+    class="w-full max-w-2xl mx-auto"
+    role="img"
+    aria-label={title ?? "Line chart"}
+  >
+    <!-- Grid lines -->
+    {yTicks.map(tick => (
+      <line
+        x1={padding.left}
+        y1={scaleY(tick)}
+        x2={width - padding.right}
+        y2={scaleY(tick)}
+        stroke="currentColor"
+        stroke-opacity={tick === 0 ? "0.3" : "0.1"}
+        stroke-width={tick === 0 ? "1.5" : "1"}
+        stroke-dasharray={tick === 0 ? "none" : "4 4"}
+      />
+    ))}
+
+    <!-- Y-axis labels -->
+    {yTicks.map(tick => (
+      <text
+        x={padding.left - 12}
+        y={scaleY(tick)}
+        text-anchor="end"
+        dominant-baseline="middle"
+        class="text-xs fill-current opacity-60"
+        font-family="var(--font-mono)"
+      >
+        {tick > 0 ? '+' : ''}{tick}{showPercentage ? '%' : ''}
+      </text>
+    ))}
+
+    <!-- Gradient definitions -->
+    <defs>
+      <linearGradient id={`${chartId}-gradient`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="currentColor" stop-opacity="0.15" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+
+    {showArea && (
+      <>
+        <!-- Area fill (only above zero) -->
+        <clipPath id={`${chartId}-above`}>
+          <rect x={padding.left} y={padding.top} width={chartWidth} height={Math.max(0, zeroY - padding.top)} />
+        </clipPath>
+        <path
+          d={areaD}
+          fill={`url(#${chartId}-gradient)`}
+          clip-path={`url(#${chartId}-above)`}
+        />
+
+        {/* Negative area (red tint) */}
+        {highlightNegative && hasNegative && (
+          <>
+            <clipPath id={`${chartId}-below`}>
+              <rect x={padding.left} y={zeroY} width={chartWidth} height={padding.top + chartHeight - zeroY} />
+            </clipPath>
+            <path
+              d={areaD}
+              fill="var(--color-danger, #ef4444)"
+              fill-opacity="0.1"
+              clip-path={`url(#${chartId}-below)`}
+            />
+          </>
+        )}
+      </>
+    )}
+
+    <!-- Line -->
+    <path
+      d={pathD}
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Data points -->
+    {showDots && data.map((point, i) => (
+      <circle
+        cx={scaleX(i)}
+        cy={scaleY(point.value)}
+        r="4"
+        fill="var(--bg-base, white)"
+        stroke="currentColor"
+        stroke-width="2"
+      />
+    ))}
+
+    <!-- X-axis labels -->
+    {xTicks.map((point, i) => {
+      const originalIndex = data.indexOf(point);
+      return (
+        <text
+          x={scaleX(originalIndex)}
+          y={padding.top + chartHeight + 20}
+          text-anchor="middle"
+          class="text-xs fill-current opacity-60"
+          font-family="var(--font-mono)"
+        >
+          {point.label}
+        </text>
+      );
+    })}
+
+    <!-- Y-axis label -->
+    {yAxisLabel && (
+      <text
+        x={15}
+        y={height / 2}
+        text-anchor="middle"
+        transform={`rotate(-90, 15, ${height / 2})`}
+        class="text-xs fill-current opacity-60"
+        font-family="var(--font-mono)"
+      >
+        {yAxisLabel}
+      </text>
+    )}
+
+    <!-- Title -->
+    {title && (
+      <text
+        x={width / 2}
+        y={20}
+        text-anchor="middle"
+        class="text-sm fill-current font-medium"
+      >
+        {title}
+      </text>
+    )}
+  </svg>
+  {caption && (
+    <figcaption class="text-center text-sm text-stone-500 dark:text-stone-400 mt-3">
+      {caption}
+    </figcaption>
+  )}
+</figure>

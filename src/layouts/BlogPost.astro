@@ -5,6 +5,12 @@ import Footer from "../components/Footer.astro";
 import Comments from "../components/Comments.astro";
 import { formatDate } from "../utils/posts";
 
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
 interface Props {
   title: string;
   description: string;
@@ -13,9 +19,12 @@ interface Props {
   tags?: string[];
   ogImage?: string;
   minutesRead?: string;
+  headings?: Heading[];
 }
 
-const { title, description, publishDate, updatedDate, tags = [], ogImage, minutesRead } = Astro.props;
+const { title, description, publishDate, updatedDate, tags = [], ogImage, minutesRead, headings = [] } = Astro.props;
+
+const showToc = headings.length > 3;
 ---
 
 <Base 
@@ -27,10 +36,11 @@ const { title, description, publishDate, updatedDate, tags = [], ogImage, minute
   modifiedTime={updatedDate}
   tags={tags}
 >
-  <div class="max-w-3xl mx-auto px-6 py-12 md:py-20">
+  <div class={`mx-auto px-6 py-12 md:py-20 ${showToc ? 'max-w-6xl' : 'max-w-3xl'}`}>
     <Header activeSection="writing" />
 
-    <article class="animate-fade-up stagger-1" data-pagefind-body>
+    <div class={showToc ? 'lg:grid lg:grid-cols-[1fr_220px] lg:gap-12' : ''}>
+    <article class="animate-fade-up stagger-1 max-w-3xl" data-pagefind-body>
       <!-- Post header -->
       <header class="mb-12" data-pagefind-ignore>
         <div class="flex items-baseline gap-4 mb-4 font-mono text-xs text-[var(--text-muted)]">
@@ -110,8 +120,103 @@ const { title, description, publishDate, updatedDate, tags = [], ogImage, minute
       </footer>
     </article>
 
-    <div class="mt-16">
+    {/* Table of Contents - sticky sidebar */}
+    {showToc && (
+      <aside class="hidden lg:block" data-pagefind-ignore>
+        <nav class="sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain toc-scroll">
+          <h2 class="font-mono text-[10px] tracking-widest uppercase text-[var(--text-faint)] mb-3 pt-8">
+            On this page
+          </h2>
+          <ul class="border-l border-[var(--border)] text-sm" id="toc">
+            {headings.map((heading) => (
+              <li>
+                <a
+                  href={`#${heading.slug}`}
+                  class={`toc-link block py-1 pl-3 -ml-px border-l border-transparent hover:border-[var(--text-faint)] transition-colors font-mono leading-snug ${
+                    heading.depth === 2 
+                      ? 'text-[12px] text-[var(--text-muted)]' 
+                      : 'text-[11px] text-[var(--text-faint)] pl-5'
+                  }`}
+                  data-slug={heading.slug}
+                  data-depth={heading.depth}
+                >
+                  {heading.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+    )}
+    </div>
+
+    <div class="mt-16 max-w-3xl">
       <Footer />
     </div>
   </div>
+
+  {/* TOC highlight script */}
+  {showToc && (
+    <script>
+      function initToc() {
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const headings = Array.from(tocLinks).map(link => {
+          const slug = link.getAttribute('data-slug');
+          return document.getElementById(slug!);
+        }).filter(Boolean) as HTMLElement[];
+
+        function updateActiveLink() {
+          const scrollPos = window.scrollY + 120;
+          
+          let activeIndex = 0;
+          for (let i = 0; i < headings.length; i++) {
+            if (headings[i].offsetTop <= scrollPos) {
+              activeIndex = i;
+            }
+          }
+
+          tocLinks.forEach((link, i) => {
+            const depth = link.getAttribute('data-depth');
+            const isH2 = depth === '2';
+            
+            if (i === activeIndex) {
+              link.classList.remove('text-[var(--text-faint)]', 'text-[var(--text-muted)]', 'border-transparent');
+              link.classList.add('!text-[var(--accent-pop)]', '!border-[var(--accent-pop)]');
+            } else {
+              link.classList.remove('!text-[var(--accent-pop)]', '!border-[var(--accent-pop)]');
+              link.classList.add('border-transparent');
+              // Restore original color based on depth
+              if (isH2) {
+                link.classList.add('text-[var(--text-muted)]');
+                link.classList.remove('text-[var(--text-faint)]');
+              } else {
+                link.classList.add('text-[var(--text-faint)]');
+                link.classList.remove('text-[var(--text-muted)]');
+              }
+            }
+          });
+
+          // Scroll active link into view within the TOC
+          const activeLink = tocLinks[activeIndex];
+          if (activeLink) {
+            const toc = document.getElementById('toc');
+            if (toc) {
+              const tocRect = toc.getBoundingClientRect();
+              const linkRect = activeLink.getBoundingClientRect();
+              if (linkRect.top < tocRect.top || linkRect.bottom > tocRect.bottom) {
+                activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              }
+            }
+          }
+        }
+
+        window.addEventListener('scroll', updateActiveLink, { passive: true });
+        updateActiveLink();
+      }
+
+      // Run on initial load and after view transitions
+      initToc();
+      document.addEventListener('astro:after-swap', initToc);
+    </script>
+  )}
 </Base>
