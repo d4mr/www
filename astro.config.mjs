@@ -11,7 +11,6 @@ import pagefind from "astro-pagefind";
 import { remarkReadingTime } from "./remark-reading-time.mjs";
 import rehypeExternalLinks from "rehype-external-links";
 
-
 // https://astro.build/config
 export default defineConfig({
   site: "https://d4mr.com", // Update with your actual domain

@@ -482,6 +482,8 @@ body::before {
 
 /* Tables */
 .prose table {
+  display: block;
+  overflow-x: auto;
   width: 100%;
   margin: 2em 0;
   font-family: var(--font-mono);
