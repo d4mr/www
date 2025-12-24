@@ -5,20 +5,28 @@ description: "Multi-platform library for constructing Zcash transactions from tr
 coverImage:
   src: "../../assets/projects/t2z/t2z_hero.png"
   alt: "t2z"
-year: "2024"
+year: "2025"
+date: "2025-11-16"
 status: "active"
 tags: ["rust", "zcash", "privacy", "wasm", "cryptography"]
 links:
-  demo: "https://t2z.d4mr.com"
+  demo: "https://t2z-wasm-demo.d4mr.com/"
+  docs: "https://t2z.d4mr.com"
+  github: "https://github.com/d4mr/t2z"
 featured: true
 featuredOrder: 3
 awards:
-  - name: "Zypherpunk Hackathon"
+  - name: "1st Place - Electric Coin Company Track"
     event: "Zypherpunk"
-    year: "2024"
+    year: "2025"
 ---
 
-Built for the Zypherpunk hackathon. Implements ZIP-374 PCZT format for multi-party transaction construction.
+import { Image } from "astro:assets";
+import winnerAnnouncement from "../../assets/projects/t2z/t2z_winner_announcement.png";
+
+Built for the Zypherpunk hackathon. Won first place in the Electric Coin Company track. Implements ZIP-374 PCZT format for multi-party transaction construction.
+
+<Image src={winnerAnnouncement} alt="t2z winner announcement - 1st place Electric Coin Company track" class="rounded border border-[var(--border)]" />
 
 No large proving key downloads. Orchard uses Halo 2 with programmatic key generation. Enables existing transparent-only infrastructure to upgrade privacy without full wallet reimplementation.
 

@@ -6,6 +6,7 @@ import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import type { CollectionEntry } from "astro:content";
 import { formatDate } from "../utils/posts";
+import { formatAwards } from "../utils/projects";
 
 interface Props {
   name: string;
@@ -62,8 +63,9 @@ const { name, tagline, description, coverImage, images = [], year, status, tags,
 
         <!-- Awards as simple text -->
         {awards.length > 0 && (
-          <p class="font-mono text-xs text-[var(--text-faint)] mb-6 tracking-wide">
-            {awards.map(a => a.name).join(" · ")}
+          <p class="font-mono text-xs text-[var(--text-faint)] mb-6 tracking-wide uppercase">
+            <span class="text-[var(--accent-pop)] opacity-70 mr-1">◆</span>
+            {formatAwards(awards)}
           </p>
         )}
 

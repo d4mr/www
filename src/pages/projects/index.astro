@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import { Image } from "astro:assets";
-import { getAllProjects } from "../../utils/projects";
+import { getAllProjects, formatAwards } from "../../utils/projects";
 
 const projects = await getAllProjects();
 ---
@@ -54,8 +54,9 @@ const projects = await getAllProjects();
 
                 {/* Awards as simple text */}
                 {project.data.awards && project.data.awards.length > 0 && (
-                  <p class="font-mono text-[10px] text-[var(--text-faint)] mb-4 tracking-wide">
-                    {project.data.awards.map(a => a.name).join(" · ")}
+                  <p class="font-mono text-[10px] text-[var(--text-faint)] mb-4 tracking-wide uppercase">
+                    <span class="text-[var(--accent-pop)] opacity-70 mr-1">◆</span>
+                    {formatAwards(project.data.awards)}
                   </p>
                 )}
 

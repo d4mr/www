@@ -6,7 +6,7 @@ import Footer from "../components/Footer.astro";
 import PostPreview from "../components/PostPreview.astro";
 import { Image } from "astro:assets";
 import { getAllPosts } from "../utils/posts";
-import { getFeaturedProjects } from "../utils/projects";
+import { getFeaturedProjects, formatAwards } from "../utils/projects";
 
 const posts = await getAllPosts();
 const recentPosts = posts.slice(0, 3);
@@ -121,8 +121,9 @@ const featuredProjects = await getFeaturedProjects();
                 </p>
 
                 {project.data.awards && project.data.awards.length > 0 && (
-                  <p class="font-mono text-[10px] text-[var(--text-faint)] mb-3 tracking-wide">
-                    {project.data.awards.map(a => a.name).join(" · ")}
+                  <p class="font-mono text-[10px] text-[var(--text-faint)] mb-3 tracking-wide uppercase">
+                    <span class="text-[var(--accent-pop)] opacity-70 mr-1">◆</span>
+                    {formatAwards(project.data.awards)}
                   </p>
                 )}
 

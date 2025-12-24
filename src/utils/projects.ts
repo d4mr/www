@@ -29,6 +29,18 @@ export async function getProjectsByTag(tag: string): Promise<Project[]> {
   );
 }
 
+export function formatAwards(awards: Array<{ name: string; event?: string; year?: string }>) {
+  const grouped = new Map<string, string[]>();
+  for (const a of awards) {
+    const event = a.event ?? "";
+    if (!grouped.has(event)) grouped.set(event, []);
+    grouped.get(event)!.push(a.name);
+  }
+  return Array.from(grouped.entries())
+    .map(([event, names]) => `${event} · ${names.join(" · ")}`)
+    .join(" · ");
+}
+
 export async function getRelatedPosts(project: Project) {
   const { getPostsByTag } = await import("./posts");
 
