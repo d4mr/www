@@ -149,7 +149,7 @@ Infrastructure engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7
 
   *Languages* / Rust, Go, TypeScript, Solidity
 
-  *Infrastructure* / PostgreSQL, Redis, Kafka, AWS Nitro Enclaves
+  *Infrastructure* / PostgreSQL, Redis, Kafka, AWS Nitro Enclaves, Cloudflare (Workers, D1, R2, Durable Objects, Queues)
 
   *Cryptography* / ZK (Halo 2, Noir), Zcash/Orchard, WASM
 
