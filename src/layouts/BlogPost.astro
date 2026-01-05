@@ -53,7 +53,7 @@ const showToc = headings.length > 3;
         </svg>
       </button>
       {/* Dropdown TOC */}
-      <div id="mobile-toc-dropdown" class="bg-[var(--bg-paper)] border-b border-[var(--border)] max-h-[50vh] overflow-y-auto overflow-x-hidden opacity-0 max-h-0 transition-all duration-200 ease-out">
+      <div id="mobile-toc-dropdown" class="bg-[var(--bg-paper)] border-b border-[var(--border)] overflow-hidden opacity-0 max-h-0 transition-all duration-200 ease-out">
         <ul class="px-3 py-1.5">
           {headings.map((heading) => (
             <li>
@@ -248,8 +248,8 @@ const showToc = headings.length > 3;
         function openDropdown() {
           if (!mobileDropdown || isDropdownOpen) return;
           isDropdownOpen = true;
-          mobileDropdown.classList.remove('max-h-0', 'opacity-0');
-          mobileDropdown.classList.add('max-h-[50vh]', 'opacity-100');
+          mobileDropdown.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
+          mobileDropdown.classList.add('max-h-[50vh]', 'opacity-100', 'overflow-y-auto');
           mobileChevron?.classList.add('rotate-180');
           // Delay adding click listener to avoid catching the current click event
           requestAnimationFrame(() => {
@@ -260,8 +260,8 @@ const showToc = headings.length > 3;
         function closeDropdown() {
           if (!mobileDropdown || !isDropdownOpen) return;
           isDropdownOpen = false;
-          mobileDropdown.classList.add('max-h-0', 'opacity-0');
-          mobileDropdown.classList.remove('max-h-[50vh]', 'opacity-100');
+          mobileDropdown.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
+          mobileDropdown.classList.remove('max-h-[50vh]', 'opacity-100', 'overflow-y-auto');
           mobileChevron?.classList.remove('rotate-180');
           document.removeEventListener('click', handleOutsideClick);
         }
