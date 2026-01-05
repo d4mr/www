@@ -38,7 +38,7 @@ const showToc = headings.length > 3;
 >
   {/* Mobile sticky header - only shows when scrolled past article header */}
   {showToc && (
-    <div id="mobile-toc-bar" class="fixed top-0 left-0 right-0 z-40 lg:hidden translate-y-[-100%] transition-transform duration-300 ease-out">
+    <div id="mobile-toc-bar" class="fixed top-0 left-0 right-0 z-40 lg:hidden translate-y-[-100%] pointer-events-none transition-transform duration-300 ease-out">
       <button 
         id="mobile-toc-trigger"
         class="w-full px-3 py-1.5 flex items-center justify-between text-left bg-[var(--bg-paper)] border-y border-[var(--border)] relative overflow-hidden"
@@ -355,9 +355,9 @@ const showToc = headings.length > 3;
           if (mobileBar && articleHeader) {
             const headerBottom = articleHeader.getBoundingClientRect().bottom;
             if (headerBottom < 0) {
-              mobileBar.classList.remove('translate-y-[-100%]');
+              mobileBar.classList.remove('translate-y-[-100%]', 'pointer-events-none');
             } else {
-              mobileBar.classList.add('translate-y-[-100%]');
+              mobileBar.classList.add('translate-y-[-100%]', 'pointer-events-none');
               // Close dropdown when bar hides
               if (isDropdownOpen) {
                 closeDropdown();
