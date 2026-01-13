@@ -1,0 +1,215 @@
+---
+title: "Implementing Figma-Style Drag-to-Adjust Number Inputs"
+publishDate: 2026-01-13
+description: "How to build the delightful click-and-drag number input interaction from design tools using the Pointer Lock API."
+tags: ["react", "ui", "javascript", "web-api"]
+---
+
+import DragNumberInputDemo from "../../components/DragNumberInputDemo.tsx";
+
+If you've used Figma, Blender, or other professional design tools, you've probably encountered one of the most satisfying micro-interactions in UI design: clicking on a label and dragging horizontally to scrub through numeric values. It feels immediate, tactile, and infinitely more fluid than clicking into an input, selecting text, and typing a new number.
+
+I recently implemented this pattern for [bother](https://bother.github.io), an image processing tool I built, and was surprised at how simple the underlying mechanism is. The secret? The Pointer Lock API.
+
+<DragNumberInputDemo client:load />
+
+## The Core Concept
+
+The magic happens in about 30 lines of code. Here's the essence:
+
+```tsx
+const DragNumberInputLabel = ({ onSlide, children }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const labelRef = useRef<HTMLLabelElement>(null);
+
+  return (
+    <label
+      ref={labelRef}
+      onMouseDown={() => {
+        labelRef.current?.requestPointerLock();
+        setIsDragging(true);
+      }}
+      onMouseMove={(e) => {
+        if (!isDragging) return;
+        onSlide?.(e.movementX);
+      }}
+      onMouseUp={() => {
+        setIsDragging(false);
+        document.exitPointerLock();
+      }}
+      className="cursor-ew-resize select-none"
+    >
+      {children}
+    </label>
+  );
+};
+```
+
+## Why Pointer Lock?
+
+Normally when you click and drag, two things happen that ruin this interaction:
+
+1. **The cursor hits the edge of the screen** and stops moving, which stops your drag
+2. **The cursor moves visibly**, which feels disconnected from the "scrubbing" metaphor
+
+The Pointer Lock API solves both problems. When you call `element.requestPointerLock()`:
+
+- The cursor becomes invisible
+- The cursor position is "locked" (it doesn't actually move)
+- Mouse movement events still fire, but now they report **relative movement** via `e.movementX` and `e.movementY`
+
+This means you can drag infinitely in any direction without hitting screen boundaries. The cursor stays locked to the element, and you get a smooth delta value to update your number.
+
+## Breaking Down the Implementation
+
+### 1. Requesting Pointer Lock
+
+```tsx
+onMouseDown={() => {
+  labelRef.current?.requestPointerLock();
+  setIsDragging(true);
+}}
+```
+
+On mouse down, we request pointer lock on the label element. This is a user-gesture-gated API (like fullscreen or audio autoplay), so it only works in response to direct user interaction.
+
+### 2. Reading Movement Delta
+
+```tsx
+onMouseMove={(e) => {
+  if (!isDragging) return;
+  onSlide?.(e.movementX);
+}}
+```
+
+While dragging, we read `e.movementX`, which gives us relative movement rather than absolute screen position. The value represents how many pixels the mouse moved since the last event. Positive values mean rightward movement, negative means leftward.
+
+We pass this raw delta to the parent via `onSlide`, letting the consumer decide how to map movement to value changes.
+
+### 3. Releasing the Lock
+
+```tsx
+onMouseUp={() => {
+  setIsDragging(false);
+  document.exitPointerLock();
+}}
+```
+
+On mouse up, we release the pointer lock and the cursor reappears exactly where you started dragging. This feels natural since you're "scrubbing" rather than "moving."
+
+## Wiring It Up to an Input
+
+Here's how you'd use this component with an actual numeric input:
+
+```tsx
+function PaddingControl() {
+  const [padding, setPadding] = useState(16);
+  
+  return (
+    <div className="flex items-center gap-2">
+      <DragNumberInputLabel
+        onSlide={(delta) => {
+          setPadding(prev => Math.max(0, prev + delta));
+        }}
+      >
+        Padding
+      </DragNumberInputLabel>
+      <input
+        type="number"
+        value={padding}
+        onChange={(e) => setPadding(Number(e.target.value))}
+      />
+    </div>
+  );
+}
+```
+
+The `onSlide` callback receives raw pixel movement. For a 1:1 feel, use it directly. For finer control (like in Figma), you might multiply by a sensitivity factor or respond to modifier keys:
+
+```tsx
+onSlide={(delta) => {
+  const sensitivity = e.shiftKey ? 0.1 : 1;
+  setPadding(prev => Math.max(0, prev + delta * sensitivity));
+}}
+```
+
+## Visual Feedback
+
+A key part of making this feel polished is visual feedback. In the demo above, I:
+
+1. Set `cursor: ew-resize` to hint at the interaction
+2. Add `user-select: none` to prevent text selection during drag
+3. Change the label style while dragging (bolder text, different background)
+
+```tsx
+className={cn(
+  "cursor-ew-resize select-none",
+  isDragging && "font-semibold"
+)}
+```
+
+## Browser Support
+
+The Pointer Lock API has [excellent browser support](https://caniuse.com/pointerlock) across all modern browsers. It's the same API games use for first-person camera controls, so it's battle-tested.
+
+One caveat: the API can fail if called too rapidly or if the page doesn't have focus. In production, you might want to wrap `requestPointerLock()` in a try-catch or check `document.pointerLockElement` to handle edge cases.
+
+## The Full Component
+
+Here's the complete implementation I use in bother:
+
+```tsx title="DragNumberInputLabel.tsx"
+import * as React from "react";
+import { Label } from "./ui/label";
+import * as LabelPrimitive from "@radix-ui/react-label";
+import { cn } from "@/lib/utils";
+
+interface IDragNumberInputProps
+  extends React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> {
+  onSlide?: (value: number) => void;
+}
+
+const DragNumberInputLabel: React.FC<IDragNumberInputProps> = ({
+  children,
+  className,
+  onSlide,
+  ...props
+}) => {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const labelRef = React.useRef<HTMLLabelElement | null>(null);
+
+  return (
+    <Label
+      ref={labelRef}
+      onMouseDown={() => {
+        labelRef.current?.requestPointerLock();
+        setIsDragging(true);
+      }}
+      onMouseMove={(e) => {
+        if (!isDragging) return;
+        onSlide?.(e.movementX);
+      }}
+      onMouseUp={() => {
+        setIsDragging(false);
+        document.exitPointerLock();
+      }}
+      className={cn(
+        "cursor-ew-resize select-none",
+        isDragging && "font-semibold",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Label>
+  );
+};
+
+export default DragNumberInputLabel;
+```
+
+## Conclusion
+
+The Pointer Lock API turns a surprisingly complex UX pattern into a trivial implementation. It's one of those web platform features that feels purpose-built for creative tools, and using it correctly makes your UI feel native to the design-tool paradigm users expect.
+
+The interaction is small, but the impact on usability is outsized. When adjusting dimensions in bother, I find myself using the drag inputs almost exclusively over typing values. That's the sign of a good micro-interaction.

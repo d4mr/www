@@ -10,11 +10,13 @@ import icon from "astro-icon";
 import pagefind from "astro-pagefind";
 import { remarkReadingTime } from "./remark-reading-time.mjs";
 import rehypeExternalLinks from "rehype-external-links";
+import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://d4mr.com", // Update with your actual domain
   integrations: [
+    react(),
     expressiveCode({
       plugins: [pluginLineNumbers(), pluginLanguageLabel()],
       themes: ["vitesse-dark", "vitesse-light"],
