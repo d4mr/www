@@ -59,7 +59,7 @@
 
 #v(2pt)
 
-Systems engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://blog.thirdweb.com/case-studies/american-express-passport/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
+Systems engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://www.linkedin.com/posts/third-web_american-express-launched-amex-passport-activity-7373754069758201856-2yeu/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
 
 #section("Experience")
 
@@ -70,7 +70,7 @@ Systems engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[E
   date: "Jul 2024 – Nov 2025"
 )[
   - Built #link("https://github.com/thirdweb-dev/engine-core")[engine-core]: Rust transaction backend powering thirdweb's API. 100k+ daily transactions across 2,000+ chains. Nonce management is the hard part, and this makes "mint 10,000 NFTs in one call" actually work.
-  - Powers #link("https://blog.thirdweb.com/case-studies/american-express-passport/")[Amex Passport], issuing digital collectibles to 140M+ cardholders. Zero failed transactions in production.
+  - Powers #link("https://www.linkedin.com/posts/third-web_american-express-launched-amex-passport-activity-7373754069758201856-2yeu/")[Amex Passport], issuing digital collectibles to 140M+ cardholders. Zero failed transactions in production.
   - Built #link("https://github.com/thirdweb-dev/engine-core/tree/main/twmq")[twmq]: Redis-backed job queue with exactly-once delivery, sub-100ms p99 latency. Handles crash recovery and retries for engine-core.
   - Designed *Vault*: non-custodial key management using AWS Nitro Enclaves. Keys live in a TEE with cryptographic attestation. Enterprise custody without the custody risk.
 ]

@@ -52,6 +52,7 @@ function DragNumberInput({
       if (frameId === null) {
         frameId = requestAnimationFrame(() => {
           const newValue = Math.min(max, Math.max(min, valueRef.current + pendingDelta));
+          valueRef.current = newValue; // Update ref immediately to avoid lag
           onChangeRef.current(newValue);
           pendingDelta = 0;
           frameId = null;
@@ -178,22 +179,14 @@ export default function DragNumberInputDemo() {
               padding: `${padding}px`,
               borderRadius: `${borderRadius}px`,
             }}
-            className="
-              bg-[#4d9e8a]
-              transition-all duration-75 ease-out
-            "
+            className="bg-[#4d9e8a]"
           >
             {/* Inner box shows content area (accent color) */}
             <div
               style={{
                 borderRadius: `${Math.max(0, borderRadius - padding * 0.5)}px`,
               }}
-              className="
-                w-full h-full
-                bg-[var(--accent)]
-                flex items-center justify-center
-                transition-all duration-75 ease-out
-              "
+              className="w-full h-full bg-[var(--accent)] flex items-center justify-center"
             >
               <span className="font-mono text-xs text-[var(--bg)] opacity-80">
                 {Math.round(width)} x {Math.round(height)}
