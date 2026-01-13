@@ -59,7 +59,7 @@
 
 #v(2pt)
 
-Infrastructure engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://blog.thirdweb.com/case-studies/american-express-passport/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
+Systems engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://blog.thirdweb.com/case-studies/american-express-passport/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
 
 #section("Experience")
 

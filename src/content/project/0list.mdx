@@ -1,0 +1,30 @@
+---
+name: "0list"
+tagline: "Self-hosted waitlist software on Cloudflare"
+description: "Deploy your own waitlist to Cloudflare Workers in minutes. Free, fast, and forever yours."
+coverImage:
+  src: "../../assets/projects/0list/cover.webp"
+  alt: "0list - Self-hosted waitlist software"
+year: "2026"
+status: "active"
+tags: ["cloudflare", "typescript", "open-source", "hono", "react"]
+links:
+  github: "https://github.com/d4mr/0list"
+  demo: "https://0list.d4mr.com"
+  npm: "https://www.npmjs.com/package/create-0list"
+  docs: "https://0list.d4mr.com/docs"
+featured: true
+featuredOrder: 2
+---
+
+Most waitlist solutions are SaaS products that charge per signup, lock you into their platform, and store your user data on their servers.
+
+0list runs entirely on your Cloudflare account. Edge-native on Workers, D1 for storage. Sub-50ms response times globally, zero recurring costs.
+
+```bash
+npx create-0list
+```
+
+One command scaffolds everything: Hono API, React admin dashboard, email templates with React Email, rate limiting, and Cloudflare Access integration for zero-trust auth.
+
+Full analytics, UTM tracking, CSV exports, double opt-in flows. All the features, none of the vendor lock-in.
