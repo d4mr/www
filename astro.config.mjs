@@ -57,6 +57,9 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    ssr: {
+      noExternal: ["react-tweet"],
+    },
   },
   markdown: {
     remarkPlugins: [remarkReadingTime],

@@ -1,0 +1,335 @@
+---
+title: "Anthropic's Kernel Optimization Challenge, Part 1: Understanding VLIW Machines"
+publishDate: "2026-01-23"
+description: "A visual guide to VLIW SIMD architectures, instruction scheduling, and why packing operations into cycles matters."
+tags: ["performance", "low-level", "compilers", "tinygrad", "anthropic"]
+---
+
+import VLIWMachineDemo from "../../components/vliw/VLIWMachineDemo.tsx";
+import TreeTraversalDemo from "../../components/vliw/TreeTraversalDemo.tsx";
+import SlotLimitsVisual from "../../components/vliw/SlotLimitsVisual.tsx";
+import DependencyDemo from "../../components/vliw/DependencyDemo.tsx";
+import CycleExplainer from "../../components/vliw/CycleExplainer.tsx";
+import SIMDDemo from "../../components/vliw/SIMDDemo.tsx";
+import GatherBottleneckDemo from "../../components/vliw/GatherBottleneckDemo.tsx";
+import Tweet from "../../components/vliw/Tweet.astro";
+
+## Nerds Took Over My Timeline
+
+If you're anything like me, your X feed got completely hijacked this week by nerds optimizing kernels. Anthropic released what I can only describe as a memetic virus for performance engineers:
+
+<Tweet id="2014143403144200234" />
+
+The premise: here's the performance engineering take-home we used to hire systems engineers. Claude Opus 4.5 now beats most humans at it. Can you beat Claude?
+
+The baseline runs in **147,734 cycles**. Claude's best score is **1,363 cycles**. That's a 108x improvement. Beat that, email them your code, maybe get an interview.
+
+And just like that, every systems programmer on Twitter lost their weekend.
+
+### The Leaderboard Wars
+
+Paradigm set up a public leaderboard and things got competitive fast:
+
+<Tweet id="2014232393159459233" />
+
+I threw my hat in the ring too. Got **2,375 cycles** ([@earth_ish](https://x.com/earth_ish)), which felt pretty good until I refreshed the page and found myself on page 2. The leaderboard moves fast when you've got hundreds of optimization-brained engineers competing for bragging rights.
+
+### Then tinygrad Entered the Chat
+
+George Hotz saw the challenge and immediately saw an opportunity:
+
+<Tweet id="2014297526124663193" />
+
+His take: you can use tinygrad to do most of the work. Just extend the linearizer to output VLIW and render to their toy processor. He shipped an implementation that gets **1,340 cycles** with a "fairly generic backend":
+
+<Tweet id="2014300152048361945" />
+
+The pitch: beat tinygrad's score with a beautiful PR, get a job at tiny corp. Two companies now hiring off the same challenge.
+
+### Two Paths, One Challenge
+
+| Path | Target | How |
+|------|--------|-----|
+| Anthropic | &lt;1,487 cycles | Hand-optimize the kernel |
+| tinygrad | Beat 1,340 cycles | Improve the compiler backend |
+| Both | &lt;1,363 cycles | Either approach works |
+
+This series will take you from zero to understanding exactly what these numbers mean, how to achieve them, and what the hell a "linearizer" is. Whether you want to hand-roll assembly or contribute to a compiler, you need to understand the machine first.
+
+Let's start with the fundamentals.
+
+---
+
+## WTF Is Going On?
+
+Before we dive in, let's make sure we're speaking the same language. Two concepts you need: **kernels** and **cycles**.
+
+### What's a Kernel?
+
+Not the Linux kind. In the context of GPUs and parallel computing:
+
+> A kernel is a small program that runs many times in parallel.
+
+When you write `a + b` in NumPy and both arrays have a million elements, you're not running a million separate Python operations. Deep in the stack, a **kernel** executes—a tight loop of machine instructions that processes elements in bulk.
+
+```python
+# This innocent line...
+result = a + b  # where a and b are arrays of 1,000,000 floats
+
+# ...triggers a kernel that conceptually does:
+for i in range(1_000_000):
+    result[i] = a[i] + b[i]
+```
+
+The kernel is the inner loop. It's what actually runs on the hardware. And making it fast is the whole game.
+
+### What's a Cycle?
+
+Your CPU has a clock. Every tick of that clock is a **cycle**. Each cycle, the processor can do... something. Maybe one operation. Maybe more. Maybe it has to wait.
+
+<CycleExplainer client:load />
+
+When Anthropic says "147,734 cycles," they mean: the naive implementation takes 147,734 clock ticks to finish. When Claude gets 1,363 cycles, it's doing the same work in 1,363 ticks. Same result, 100x fewer cycles.
+
+Cycles are the currency of performance. Every optimization technique—pipelining, parallelism, caching, branch prediction—exists to do more useful work per cycle.
+
+If you want to go deeper on how CPUs actually execute instructions, [cpu.land](https://cpu.land) is an incredible visual explainer. But for this challenge, you just need to know: **fewer cycles = faster**.
+
+### The Simulated Machine
+
+Here's the twist: this challenge doesn't run on your CPU or GPU. Anthropic built a **simulated processor** with specific, unusual constraints. It's a toy machine, but the optimization principles are real.
+
+Understanding those constraints is the whole game. Let's look at the machine.
+
+---
+
+## The Machine
+
+The simulated processor is a **VLIW SIMD** architecture. Let's break that down.
+
+### SIMD: One Instruction, Many Data
+
+SIMD stands for Single Instruction, Multiple Data. Instead of processing one element at a time, you process a whole **vector** in a single operation.
+
+<SIMDDemo client:load />
+
+This machine has a vector width of 8 (`VLEN=8`). Run both modes and watch the difference. Scalar takes 8 cycles to add 8 pairs. SIMD does it in 1.
+
+If you have 256 elements to process, that's 256 scalar operations or 32 vector operations. Same result, 8x fewer cycles.
+
+### VLIW: One Cycle, Many Operations
+
+VLIW stands for Very Long Instruction Word. Instead of executing one operation per clock cycle, you pack **multiple independent operations** into a single "instruction bundle" that all execute in parallel.
+
+The machine has five "engines," each capable of running multiple "slots" per cycle:
+
+<SlotLimitsVisual client:load />
+
+In a single cycle, you can execute up to 12 scalar ALU operations, 6 vector ALU operations, 2 loads, 2 stores, and 1 flow control operation. All at once. Every cycle.
+
+Here's what this looks like in practice:
+
+<VLIWMachineDemo client:load />
+
+Toggle between "Naive" and "Packed" to see the difference. Same computation, fewer cycles. The naive version uses one operation per cycle. The packed version fills multiple slots per cycle.
+
+This is the core insight: **the machine can do a lot per cycle, but only if you tell it to**.
+
+A naive compiler emits one operation per instruction. An optimizing compiler packs as many independent operations as possible into each cycle. The difference is 100x+ performance.
+
+### Scratch Space (Registers)
+
+The machine has 1,536 words of "scratch space." Think of it as registers. You load values from memory into scratch, compute on them, and store results back.
+
+Unlike a real CPU with 16-32 registers, you have 1,536. This sounds generous until you realize the challenge requires processing 256 values through 16 rounds of computation. Register allocation becomes a real constraint.
+
+---
+
+## The Algorithm
+
+Now that we understand the machine, what are we computing?
+
+### Tree Traversal with Hashing
+
+The problem simulates 256 "walkers" traversing a binary tree. Each walker has:
+- An **index** (current position in the tree)
+- A **value** (accumulator that gets hashed)
+
+All walkers start at the **root** (index 0) with different initial values (random seeds). Even though they start at the same position, their different values cause the hash to produce different results, making them diverge down different paths.
+
+Each round, every walker:
+
+1. **Looks up** the tree node value at its current index
+2. **XORs** its value with the node value
+3. **Hashes** the result (6 stages of bit manipulation)
+4. **Moves** left or right based on whether the hash is even or odd
+5. **Wraps** to the root if it falls off the tree
+
+Here's a visualization:
+
+<TreeTraversalDemo client:load />
+
+Watch the walker traverse the tree. Each step involves a lookup, hash, and branch decision. The hash function is deterministic, so the path depends entirely on the initial value.
+
+### The Hash Function
+
+The hash is the expensive part. Six stages of bit manipulation:
+
+```python
+def myhash(a):
+    a = (a + 0x7ED55D16) + (a << 12)
+    a = (a ^ 0xC761C23C) ^ (a >> 19)
+    a = (a + 0x165667B1) + (a << 5)
+    a = (a + 0xD3A2646C) ^ (a << 9)
+    a = (a + 0xFD7046C5) + (a << 3)
+    a = (a ^ 0xB55A4F09) ^ (a >> 16)
+    return a
+```
+
+Each stage is 3 operations: add/xor with constant, shift, combine. That's 18 ALU operations per hash, per walker, per round.
+
+With 256 walkers and 16 rounds, that's:
+
+```
+256 × 16 × 18 = 73,728 hash operations alone
+```
+
+Plus lookups, index calculations, and stores. The naive baseline takes 147,734 cycles because it does one operation per cycle.
+
+### The Numbers
+
+| What | Count |
+|------|-------|
+| Walkers | 256 |
+| Rounds | 16 |
+| Tree nodes | 2,047 (height=10) |
+| Hash ops per walker per round | 18 |
+| Total hash ops | 256 × 16 × 18 = 73,728 |
+| Baseline cycles | 147,734 |
+| Claude's best | 1,363 |
+
+The baseline is slow because it doesn't use SIMD (processing 1 walker at a time instead of 8) and doesn't pack operations (1 op per cycle instead of many).
+
+---
+
+## Why Packing Is Hard
+
+You can't just throw all operations into one cycle. There are **dependencies**.
+
+<DependencyDemo client:load />
+
+Click through the examples. When operation B reads a register that operation A writes, they can't be in the same cycle. B would read the **old** value of the register, not A's result.
+
+This is the fundamental constraint of instruction scheduling:
+
+1. **RAW (Read-After-Write)**: B reads what A writes → B must come after A
+2. **WAW (Write-After-Write)**: Both write same register → undefined which wins
+3. **WAR (Write-After-Read)**: B writes what A reads → ambiguous timing
+
+The art of optimization is finding operations that **don't** conflict and packing them together.
+
+### Example: Hash Stage
+
+Each hash stage looks like:
+
+```python
+tmp1 = val + CONST1     # writes tmp1, reads val
+tmp2 = val << SHIFT     # writes tmp2, reads val
+val  = tmp1 ^ tmp2      # writes val, reads tmp1 and tmp2
+```
+
+The first two operations **can** be packed—they both read `val` but write different registers. The third operation **cannot** be packed with them—it reads `tmp1` and `tmp2`, which are being written.
+
+So each hash stage is at minimum 2 cycles, not 1. And that's just one walker. To parallelize across walkers, you need different registers for each, which eats into your 1,536 register budget.
+
+---
+
+## The Optimization Space
+
+Armed with this understanding, what can we optimize?
+
+### Level 1: Vectorization (SIMD)
+
+Instead of processing 1 walker at a time, process 8:
+
+```python
+# Before: 256 iterations, 1 walker at a time
+for i in range(256):
+    val[i] = hash(val[i] ^ tree[idx[i]])
+
+# After: 32 iterations, 8 walkers at a time
+for i in range(0, 256, 8):
+    node_vals = [tree[idx[i+j]] for j in range(8)]  # 8 scattered loads
+    val[i:i+8] = vhash(val[i:i+8] ^ node_vals)
+```
+
+The hash computation can use SIMD (`vhash` operates on 8 values at once). But there's a catch: **this machine has no gather instruction**.
+
+`vload` only loads 8 *contiguous* memory locations. When your 8 walkers are at scattered tree positions like `[5, 12, 3, 7, 0, 9, 2, 11]`, you can't load all their node values in one instruction. You need 8 separate scalar loads, and the machine can only do **2 loads per cycle**. That's 4 cycles just to fetch the data before you can even start hashing.
+
+<GatherBottleneckDemo client:load />
+
+### Level 2: Instruction Packing (VLIW)
+
+Within each iteration, pack independent operations:
+
+```python
+# Before: 18 cycles for hash (1 op each)
+# After: ~6 cycles for hash (3 ops packed where possible)
+```
+
+This requires analyzing dependencies and finding operations that can run in parallel.
+
+### Level 3: Register Allocation
+
+With 256 walkers × 2 values each × 16 rounds of intermediate values... you need careful register reuse. The naive approach allocates fresh registers and runs out of space.
+
+### Level 4: Memory Access Patterns
+
+The tree lookup is the bottleneck. At level 0, all 256 walkers read the same node (the root). At level 10, they're scattered across 1024 possible nodes. Different levels need different strategies.
+
+### Level 5: Algorithmic Tricks
+
+For small tree levels, you can avoid scattered loads entirely. At level 1, walkers can only be at index 1 or 2. Instead of 256 scattered loads, preload both values once:
+
+```python
+# Preload the only 2 possible values (2 loads, done once)
+val_at_1 = tree[1]
+val_at_2 = tree[2]
+
+# For each walker, select based on index (no memory access!)
+node_val = select(idx == 1, val_at_1, val_at_2)
+```
+
+At level 2, there are only 4 possible nodes. At level 3, only 8. The deeper you go, the more scattered the walkers become, and eventually you have to eat the load cost. But for early levels, this trick eliminates the gather bottleneck entirely.
+
+---
+
+## What's Next
+
+This post gave you the mental model. You understand:
+
+- What the machine can do (VLIW SIMD with specific slot limits)
+- What we're computing (tree traversal with hashing)
+- Why it's hard (data dependencies limit packing)
+- What to optimize (vectorization, packing, allocation, memory, algorithms)
+
+In Part 2, we'll look at the actual code: the naive baseline, how to run it, and how to trace execution to see where cycles are spent.
+
+In Part 3, we'll dive into tinygrad's approach: how it represents computation as UOps, what the "linearizer" does, and how to extend the renderer for VLIW output.
+
+The goal by the end of this series: you understand enough to either hand-optimize the kernel for Anthropic or contribute a meaningful PR to tinygrad.
+
+Both companies are hiring. The challenge is the same. The approach is up to you.
+
+---
+
+## Resources
+
+- [Anthropic's Original Performance Take-Home](https://github.com/anthropics/original_performance_takehome) - The challenge repo
+- [tinygrad's anthropic_challenge.py](https://github.com/tinygrad/tinygrad/blob/master/examples/anthropic_challenge.py) - George Hotz's implementation
+- [The problem.py file](https://github.com/anthropics/original_performance_takehome/blob/main/problem.py) - The machine simulator
+
+---
+
+*Next up: Part 2 - Running the baseline, tracing execution, and understanding where cycles are spent.*
