@@ -34,7 +34,7 @@ const experience = [
     period: "Mar 2021 - Nov 2021",
     location: "London / Remote",
     description:
-      "First full-time role. Built a blockchain-based decentralized censorship-resistant podcasting platform using IPFS, Node, and Ethereum. This is where I truly started to appreciate web3 and the promise it held.",
+      "First full-time role. Built a blockchain-based decentralized censorship-resistant podcasting platform using IPFS, Node, and Ethereum.",
   },
 ];
 ---
@@ -46,7 +46,7 @@ const experience = [
   <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
     <Header activeSection="about" />
 
-    <section class="mb-20 animate-fade-up stagger-1">
+    <section class="mb-12 animate-fade-up stagger-1">
       <p class="font-serif text-lg md:text-xl leading-relaxed font-light">
         I'm a systems engineer. I build
         decentralized systems and the tooling that makes them usable.
@@ -57,58 +57,65 @@ const experience = [
       </p>
     </section>
 
+    <section class="mb-16 animate-fade-up stagger-2">
+      <p class="font-serif text-base md:text-lg leading-relaxed text-stone-500">
+        Some highlights: won
+        <a href="https://x.com/ETHIndiaco/status/1866098806758252987" target="_blank" rel="noopener" class="text-[var(--text)] link-underline">ETHIndia 2024</a>
+        with zkRail, coauthored
+        <a href="https://eips.ethereum.org/EIPS/eip-7518" target="_blank" rel="noopener" class="text-[var(--text)] link-underline">ERC-7518</a>
+        for globally compliant RWA tokenization, built the first
+        <span class="italic text-stone-600 dark:text-stone-400">ERC-4337</span>
+        multichain wallet, and developed core infrastructure for
+        <span class="italic text-stone-600 dark:text-stone-400">EIP-7702</span> and
+        <span class="italic text-stone-600 dark:text-stone-400">EIP-2771</span>
+        meta-transaction relayers.
+      </p>
+      <p class="mt-4">
+        <a href="/story" class="font-mono text-sm link-underline text-[var(--text-muted)]">
+          How I got here &rarr;
+        </a>
+      </p>
+    </section>
+
     <!-- Divider -->
     <div class="mb-16 h-px bg-[var(--border)] animate-fade-in stagger-2"></div>
 
-    <article class="animate-fade-up stagger-2">
-      <div class="font-serif text-lg md:text-xl leading-relaxed font-light text-stone-500">
-        <p>
-          Some highlights: won
-          <a href="https://x.com/ETHIndiaco/status/1866098806758252987" target="_blank" rel="noopener" class="text-[var(--text)] link-underline">ETHIndia 2024</a>
-          with zkRail, coauthored
-          <a href="https://eips.ethereum.org/EIPS/eip-7518" target="_blank" rel="noopener" class="text-[var(--text)] link-underline">ERC-7518</a>
-          for globally compliant RWA tokenization, built the first
-          <span class="italic text-stone-600 dark:text-stone-400">ERC-4337</span>
-          multichain wallet, and developed core infrastructure for
-          <span class="italic text-stone-600 dark:text-stone-400">EIP-7702</span> and
-          <span class="italic text-stone-600 dark:text-stone-400">EIP-2771</span>
-          meta-transaction relayers.
-        </p>
-      </div>
-
-      <!-- The Story -->
-      <section class="mt-16">
+    <article class="animate-fade-up stagger-3">
+      <!-- Experience -->
+      <section>
         <h2
           class="font-mono text-xs tracking-widest uppercase text-[var(--text-muted)] mb-8"
         >
-          The Story
+          Experience
         </h2>
 
-        <div class="space-y-6 font-serif text-base md:text-lg text-stone-500 leading-relaxed">
-          <p>
-            I had a turning point at age 11 when I picked up "Head First Programming" from a bookstore. The world wasn't the same anymore. Just layers of abstractions. Physics became an interface to the API of the Fundamental Nature of Reality, one whose implementation I could not take a peek at.
-          </p>
-
-          <blockquote class="border-l-2 border-[var(--border)] pl-6 italic text-[var(--text-muted)]">
-            "How does magic work? You wave a wand and say the right words in the right order and you control the physical world. But then you realize there really is something like magic right here: programming."
-            <span class="block mt-2 text-sm not-italic">George Hotz</span>
-          </blockquote>
-
-          <p>
-            I had found magic in programming. In being able to create so much change with just a couple of keystrokes. I was hooked.
-          </p>
-
-          <p>
-            Fast forward 7 years. Professional experience as a freelancer, working with global clients, but still stuck at Kota cramming for IIT-JEE. When COVID lockdowns started, I took it as a blessing in disguise. I had enough of the rat race. I was out.
-          </p>
-
-          <p>
-            This felt like the hardest decision I had ever made. It was not easy to convince my very conventional family that their 18-year-old was going on a path so unwonted. But through countless arguments, they reluctantly agreed.
-          </p>
-
-          <p>
-            My first full-time opportunity was at a London-based startup building a decentralized censorship-resistant podcasting platform. It was here I truly started to appreciate web3: a world where you don't need to implicitly trust, where actions are transparent, where power belongs to the people. A world built by misfits. A world where I belonged.
-          </p>
+        <div class="space-y-8">
+          {
+            experience.map((job, i) => (
+              <div
+                class:list={[
+                  "border-l-2 border-[var(--border)] pl-6 animate-fade-up",
+                  `stagger-${Math.min(i + 3, 6)}`,
+                ]}
+              >
+                <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+                  <h3 class="font-serif text-lg">
+                    {job.company}{" "}
+                    <span class="text-[var(--text-muted)]">/ {job.role}</span>
+                  </h3>
+                  <span class="font-mono text-xs text-[var(--text-faint)]">
+                    {job.period}
+                  </span>
+                </div>
+                <p class="font-mono text-xs text-[var(--text-muted)] mb-3">
+                  {job.location}
+                </p>
+                <p class="font-serif text-sm text-stone-500 leading-relaxed">
+                  {job.description}
+                </p>
+              </div>
+            ))
+          }
         </div>
       </section>
 
@@ -185,44 +192,6 @@ const experience = [
             </p>
             <span class="font-mono text-xs text-[var(--text-faint)]">Draft, Ethereum EIPs</span>
           </div>
-        </div>
-      </section>
-
-      <!-- Experience -->
-      <section class="mt-16">
-        <h2
-          class="font-mono text-xs tracking-widest uppercase text-[var(--text-muted)] mb-8"
-        >
-          Experience
-        </h2>
-
-        <div class="space-y-8">
-          {
-            experience.map((job, i) => (
-              <div
-                class:list={[
-                  "border-l-2 border-[var(--border)] pl-6 animate-fade-up",
-                  `stagger-${Math.min(i + 2, 6)}`,
-                ]}
-              >
-                <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
-                  <h3 class="font-serif text-lg">
-                    {job.company}{" "}
-                    <span class="text-[var(--text-muted)]">/ {job.role}</span>
-                  </h3>
-                  <span class="font-mono text-xs text-[var(--text-faint)]">
-                    {job.period}
-                  </span>
-                </div>
-                <p class="font-mono text-xs text-[var(--text-muted)] mb-3">
-                  {job.location}
-                </p>
-                <p class="font-serif text-sm text-stone-500 leading-relaxed">
-                  {job.description}
-                </p>
-              </div>
-            ))
-          }
         </div>
       </section>
 

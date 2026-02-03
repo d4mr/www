@@ -1,0 +1,256 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Base
+  title="Story | Prithvish Baidya"
+  description="How I got here. From HTML in Notepad to decentralized systems."
+>
+  <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <Header activeSection="about" />
+
+    <article class="animate-fade-up stagger-1">
+      <h1 class="font-serif text-3xl md:text-4xl font-light mb-12">
+        The Story
+      </h1>
+
+      <div class="space-y-6 font-serif text-base md:text-lg leading-relaxed font-light">
+        <p>
+          I fell in love with computers before I knew what they were.
+        </p>
+
+        <p>
+          I was maybe 8 or 9. There was this episode of Kochikame, a Japanese anime, where Ryotsu encounters this super smart kid. The kid had this machine that looked like a computer but had an abacus attached to it. I don't remember the plot. I just remember staring at that screen thinking: <em>I want that. Whatever that is, I want it.</em>
+        </p>
+
+        <p>
+          I grew up in Darjeeling, which meant long winters and even longer school breaks. Three months, sometimes. I'd visit my grandmother in Ranchi. She taught science to 8th, 9th, 10th graders at a local school. She'd bring me books from her library. Anything I asked for.
+        </p>
+
+        <p>
+          Meanwhile, my actual computer education was Indian. You know the type. "How to format text in Microsoft Word. Step 1: Select the text. Step 2: Right-click. Step 3: Click 'Font'..." Memorize the steps. Regurgitate them on the exam. The kind of education designed to make you hate anything you might have loved. But it didn't work on me. I was already too far gone.
+        </p>
+
+        <p>
+          One day, my grandmother brought me a 10th-grade computer science textbook. It had a chapter on HTML. Not CSS. Not JavaScript. Just raw HTML. Tables and tags and <code class="text-sm bg-[var(--bg-paper)] px-1.5 py-0.5 rounded border border-[var(--border)] shadow-sm whitespace-nowrap">&lt;a href&gt;</code>.
+        </p>
+
+        <p>
+          That was enough.
+        </p>
+
+        <p>
+          I opened Notepad. I typed some tags. I saved it as <code class="text-sm bg-[var(--bg-paper)] px-1.5 py-0.5 rounded border border-[var(--border)] shadow-sm whitespace-nowrap">.html</code>. I opened it in a browser and <em>text I had written became something else</em>. It transformed. It worked behind layers I couldn't see to make something appear on screen.
+        </p>
+
+        <p>
+          That was the moment. I was 9 years old and I had found magic.
+        </p>
+
+        <blockquote class="relative border-l-2 border-[var(--accent-pop)] pl-12 my-8 text-[var(--text-muted)]">
+          <span class="absolute left-3 top-0 text-5xl leading-none text-[var(--accent-pop)] font-serif select-none" aria-hidden="true">"</span>
+          How does magic work? You wave a wand and say the right words in the right order and you control the physical world. But then you realize there really is something like magic right here: programming.
+          <span class="block mt-3 text-sm">— George Hotz</span>
+        </blockquote>
+
+        <p>
+          I did QBasic. I tried Head First C, but it was too much. The book itself recommended starting with Head First Programming. So I did that instead. And once I understood that everything was just layers, that you could peel them back and see how it worked, I couldn't stop. I kept going and going and going.
+        </p>
+
+        <p>
+          Websites were cool, but robotics felt like the real magic. Making things move in the physical world. The problem was hardware costs money, and I was a kid with none. So I did what any reasonable person would do: simulate it. Game development. If I couldn't build robots, I could build worlds where robots existed.
+        </p>
+
+        <p>
+          Flash games first. Then Unity. Then Unreal. Then mobile apps because everyone said that's where the money was. I built dozens of things that never shipped. Half-finished platformers. Broken physics simulations. An app that was supposed to do something I can't even remember anymore.
+        </p>
+
+        <p>
+          Somewhere in there I discovered Linux. Dual-booted Ubuntu on the family computer, mass bricked it, fixed it before anyone noticed. Did it again with Fedora. Then Arch, because of course. I spent more time configuring my desktop environment than actually using it. But I was learning. Every broken system taught me something about how systems worked.
+        </p>
+
+        <p>
+          Then I discovered you could rent computers in the cloud. Five dollars a month for a Digital Ocean droplet. I'd SSH in from my laptop and feel like a hacker. Ran game servers for friends. Hosted random projects. Broke things, fixed things. The feedback loop was intoxicating.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-12 h-px bg-[var(--border)]"></div>
+
+      <div class="space-y-6 font-serif text-base md:text-lg leading-relaxed font-light">
+        <p>
+          When I was 12, I watched The Social Network.
+        </p>
+
+        <p>
+          Terrible idea for a kid who already thought he could build anything. I walked out convinced I needed to create a social network. In PHP. I didn't know what a social network actually was. Didn't know how you got users. Didn't know that building the thing was the easy part and <em>everything else</em> was the hard part. I just saw that Mark Zuckerberg typed fast and became a billionaire. I could type fast too.
+        </p>
+
+        <p>
+          I still have <a href="https://stackoverflow.com/questions/27582758/php-is-printing-an-extra-1-in-the-webpage" target="_blank" rel="noopener" class="link-underline">the receipts</a>. December 2014. A Stack Overflow question: "PHP is printing an extra 1 in the webpage." I was completely in the weeds, missing that <code class="text-sm bg-[var(--bg-paper)] px-1.5 py-0.5 rounded border border-[var(--border)] shadow-sm whitespace-nowrap">include_once</code> returns <code class="text-sm bg-[var(--bg-paper)] px-1.5 py-0.5 rounded border border-[var(--border)] shadow-sm whitespace-nowrap">1</code> on success. The question got downvoted. Closed as "caused by typos." Classic.
+        </p>
+
+        <p>
+          The social network never got users. Obviously.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-12 h-px bg-[var(--border)]"></div>
+
+      <div class="space-y-6 font-serif text-base md:text-lg leading-relaxed font-light">
+        <p>
+          A year later, I had an even bigger idea. AVATAAR. <em>Animatronic Vehicular Android for Telecommunication Automation And Research.</em> Yes, I made up the acronym first.
+        </p>
+
+        <p>
+          The concept: a suit covered in potentiometers to capture human kinematic data. Stream it wirelessly to a robot. Mount stereoscopic cameras on the robot's head. Stream video back to VR goggles. Full telepresence. Put the whole thing on a tracked chassis, and suddenly you could be anywhere in the world from your bedroom.
+        </p>
+
+        <p>
+          I was 13. I thought this was <em>novel</em>. I was going to win the Google Science Fair, collect the $15,000 prize, and never worry about money again. $15,000 was incomprehensible. I could buy anything with that. I could buy <em>everything</em>.
+        </p>
+
+        <p>
+          What I didn't understand: everyone already knew telepresence would be cool. The idea wasn't special. The hard part was execution: mechanical engineering, latency, bandwidth, a thousand details that separate a concept from a product. I was blind to all of it. Just a kid trying to get <a href="https://arduino.stackexchange.com/questions/10251/how-to-control-arduino-robot-wirelessly" target="_blank" rel="noopener" class="link-underline">NRF24L01 modules to talk to each other</a>.
+        </p>
+
+        <p>
+          Someone in that thread asked if I had any ideas how to start, or if I was hoping someone would do it for me. I replied: "I have googled all over and nothing seems to address what I need.... BTW - I am 13 years old."
+        </p>
+
+        <p>
+          Another person wrote: "A 13 year old programming an embedded device? Good luck to you, if you conquer it you will be years ahead of your age group."
+        </p>
+
+        <p>
+          I didn't conquer it. The <a href="https://forum.arduino.cc/t/antennae-causes-data-transmission-problems-in-nrf24l01-pa-lna-module/395186" target="_blank" rel="noopener" class="link-underline">antennas kept causing transmission errors</a>. The project died like all ambitious 13-year-old projects. Not with a bang, but with school starting again and the parts gathering dust in a drawer.
+        </p>
+
+        <p>
+          But something stuck. The belief that you could just <em>build things</em>. That the distance between "person with an idea" and "person who ships" was just stubbornness and time. Probably naive. Definitely useful.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-12 h-px bg-[var(--border)]"></div>
+
+      <div class="space-y-6 font-serif text-base md:text-lg leading-relaxed font-light">
+        <p>
+          Somewhere in there I started freelancing. Small gigs at first, then bigger ones. I built an Electron app for a client in Hungary. A GUI wrapper for their Python script that could restream Twitch and YouTube straight from OBS onto the Sia blockchain. The dapp was called Sia SkyLive. Decentralized live streaming. I made maybe $50.
+        </p>
+
+        <p>
+          But here's the thing: how do you pay a teenager in India for work on a decentralized streaming app?
+        </p>
+
+        <p>
+          Bitcoin.
+        </p>
+
+        <p>
+          I'd been building in the periphery of crypto for a while, but you never forget your first magic internet money. I still have that BTC.
+        </p>
+
+        <p>
+          For weeks I couldn't wrap my head around it. Wait. <em>Nobody</em> owns this? Nobody's in charge? We just... agree? How? Proof of work? But that's so much wasted computation. Why would anyone—
+        </p>
+
+        <p>
+          I watched the 3Blue1Brown video. Read the whitepaper. Read Vitalik's blog posts. Studied how Ethereum took Bitcoin's idea and turned it into a whole goddamn computer. Felt the cypherpunk vision click into place.
+        </p>
+
+        <p>
+          An interplanetary human economy won't be run by centralized parties on some arbitrary planet. It'll be owned by everyone. Decentralization wasn't just a technical choice. It was the answer to a question I didn't know I'd been asking.
+        </p>
+
+        <p>
+          And once I saw that world, it was the same feeling as writing my first HTML file. Text becoming something else. Magic layers making magic happen.
+        </p>
+
+        <p>
+          I was hooked again.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-12 h-px bg-[var(--border)]"></div>
+
+      <div class="space-y-6 font-serif text-base md:text-lg leading-relaxed font-light">
+        <p>
+          Here's the thing: I wasn't a dropout story. I had options. Real ones.
+        </p>
+
+        <p>
+          NTSE scholar. Top 1000 nationally. KVPY fellowship from IISc. I had a direct path to IISER, one of the best research institutes in the country. No entrance exam required. I could've walked into a physics degree and probably done fine. My parents were proud. Teachers said I had "potential." The future was mapped out.
+        </p>
+
+        <p>
+          So naturally, I went to Kota. Because that's what you did if you were serious. JEE coaching. The factory that turns curious kids into exam-cracking machines.
+        </p>
+
+        <p>
+          Three years. I spent three years there.
+        </p>
+
+        <p>
+          And slowly, something broke. Not my ability to solve problems. I could still do that. What broke was my belief that any of it mattered. I watched kids who had no love for physics memorize derivations like religious scripture. They'd study Russian grammar the same way if that's what the exam asked for. The subject wasn't the point. The rank was the point. The seat was the point. The job was the point. And then what?
+        </p>
+
+        <p>
+          I became bitter. Disillusioned. I was surrounded by people optimizing for a game I didn't want to win anymore. Meanwhile, I'd been freelancing on the side, building real things for real clients. That felt more meaningful than anything in those coaching halls.
+        </p>
+
+        <p>
+          Then COVID hit. Lockdowns. Everything stopped.
+        </p>
+
+        <p>
+          I took it as a sign. I was done. Done with the rat race. Done pretending I cared about what everyone else cared about. I wanted to give up. Not on myself, but on the path everyone had chosen for me.
+        </p>
+
+        <p>
+          This was the hardest conversation I've ever had. Try explaining to Indian parents that their 18-year-old is dropping out of JEE prep to... code? For startups? In <em>crypto</em>? After they'd paid for three years of Kota coaching? After I'd already proven I could succeed the traditional way?
+        </p>
+
+        <p>
+          The arguments were brutal. Weeks of them. They didn't agree so much as exhaust themselves. My mom cried. My dad went silent for days. They weren't being cruel. They were terrified. They'd sacrificed everything so I could have options, and here I was throwing those options away for something they couldn't understand.
+        </p>
+
+        <p>
+          I still don't know if I was brave or just young enough to not know better. Probably both.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-12 h-px bg-[var(--border)]"></div>
+
+      <div class="space-y-6 font-serif text-base md:text-lg leading-relaxed font-light">
+        <p>
+          My first full-time role was at a London startup building a decentralized censorship-resistant podcasting platform. IPFS. Ethereum. The whole stack.
+        </p>
+
+        <p>
+          I remember the moment I actually understood what we were building. Not the code, but the <em>why</em>. A world where you don't have to trust anyone because the math does the trusting. Where actions are transparent. Where power belongs to the people who show up. Where misfits and weirdos aren't bugs, they're features.
+        </p>
+
+        <p>
+          I'd finally found my people.
+        </p>
+      </div>
+
+      <!-- Back link -->
+      <div class="mt-16 pt-8 border-t border-[var(--border)]">
+        <a href="/about" class="font-mono text-sm link-underline text-[var(--text-muted)]">
+          &larr; Back to About
+        </a>
+      </div>
+    </article>
+
+    <div class="mt-20">
+      <Footer />
+    </div>
+  </div>
+</Base>
