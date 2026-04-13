@@ -59,9 +59,18 @@
 
 #v(2pt)
 
-Systems engineer. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://www.linkedin.com/posts/third-web_american-express-launched-amex-passport-activity-7373754069758201856-2yeu/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
+Systems engineer, currently on the Rollups Team at #link("https://conduit.xyz")[Conduit]. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://www.linkedin.com/posts/third-web_american-express-launched-amex-passport-activity-7373754069758201856-2yeu/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
 
 #section("Experience")
+
+#entry(
+  link("https://conduit.xyz")[Conduit],
+  subtitle: "Software Engineer — Rollups Team",
+  location: "Remote",
+  date: "Apr 2026 – Present"
+)[
+  - Working on rollup infrastructure.
+]
 
 #entry(
   link("https://thirdweb.com")[thirdweb],
