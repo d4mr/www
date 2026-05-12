@@ -1,0 +1,118 @@
+---
+title: "pixgel: Pixel Art That Beads Together Like Mercury"
+publishDate: 2026-05-13
+description: "A pixel art editor where pixels fuse into each other on a grid. SVG export, share-by-URL, no backend. Built around a single corner rule."
+tags: ["typescript", "react", "svg", "graphics", "side-project"]
+---
+
+import Callout from "../../components/Callout.astro";
+import { Image } from "astro:assets";
+import comparison from "../../assets/projects/pixgel/comparison.svg";
+
+<Callout title="pixgel.d4mr.com">
+A pixel art editor where pixels bead together like liquid. [Try it](https://pixgel.d4mr.com) · [GitHub](https://github.com/d4mr/pixgel)
+</Callout>
+
+There's a visual idiom going around — pixel grids rendered with rounded outer corners and concave inner ones, so adjacent cells fuse into one continuous shape. The [Prime Intellect](https://primeintellect.ai) wordmark uses it. Retool's logo uses it. The other day [Marc Kohlbrugge](https://x.com/marckohlbrugge/status/2053616489467629939) was hand-drawing pixel art with the same treatment, placing each rounded rectangle and fillet piece by hand.
+
+The shape feels familiar because it's pretty natural. Two wet droplets approaching each other form a meniscus that snaps closed just before they touch. Three soap films meet at curved concave junctions called Plateau borders. Ferrofluid drops grow a tight waist when they bridge under a magnet. The optical illusion when your fingertips don't quite touch in front of a light source is the diffraction version of the same thing. The eye reads any of these as one shape — discrete bodies, fluid joint.
+
+I built an editor for it. [pixgel.d4mr.com](https://pixgel.d4mr.com).
+
+<Image src={comparison} alt="Sharp pixels on the left. The same five cells rendered by pixgel on the right, fused into a single liquid shape with a diagonal pinch joint." class="rounded border border-[var(--border)] bg-[var(--bg-paper)]" />
+
+## the corner rule
+
+Every filled cell has four corners. Each corner gets one of two treatments:
+
+- Round outward if both orthogonal neighbours are empty and the diagonal cell isn't the same colour. Quarter-arc, convex.
+- Stay sharp otherwise. The cell extends all the way into the corner so a joint can form there.
+
+For every _empty_ cell with two same-colour orthogonal neighbours, drop a concave quarter-arc filler in that corner. In CAD that's called a fillet — a rounded inside corner.
+
+```ts
+// src/lib/geometry.ts
+const tl = Ne && We && !sameNW ? r : 0;
+const tr = Ne && Ee && !sameNE ? r : 0;
+const br = Se && Ee && !sameSE ? r : 0;
+const bl = Se && We && !sameSW ? r : 0;
+```
+
+Three booleans per corner. That's it.
+
+## the diagonal pinch
+
+The case worth pointing at is two filled cells touching only at a single corner. The two empty cells between them each have two same-colour orthogonal neighbours, so each contributes a concave filler. The fillers meet at the shared corner. The two filled cells extend sharply into the same point. Four arcs at one pixel — that's the pinch.
+
+Same configuration as the soap-film junction. Drop in two more cells and you can see the surface tension.
+
+## one geometry, two outputs
+
+Canvas preview and SVG export share a single path-string generator. The browser builds `Path2D` straight from SVG path data, so the same `d` attribute feeds both.
+
+```ts
+function roundedRect(x, y, w, h, tl, tr, br, bl): string {
+  const parts = [`M${x + tl} ${y}`, `L${x + w - tr} ${y}`];
+  if (tr) parts.push(`A${tr} ${tr} 0 0 1 ${x + w} ${y + tr}`);
+  parts.push(`L${x + w} ${y + h - br}`);
+  if (br) parts.push(`A${br} ${br} 0 0 1 ${x + w - br} ${y + h}`);
+  // …
+  return parts.join(" ");
+}
+```
+
+`ctx.fill(new Path2D(d))` for canvas. `<path d={d} fill={c} />` for export. There's no second renderer to drift out of sync.
+
+## share by URL
+
+The drawing serialises into a small binary blob, then through `CompressionStream('deflate-raw')`, then base64url, then into the URL fragment after `#d=`. Fragments don't get sent to servers. The drawing _is_ the link.
+
+```
+u8       version
+i32      minX, minY            (LE)
+u16      cols, rows
+u8       paletteLen
+u8[3·N]  palette                (RGB)
+u8[cols·rows] cell indices      (0 = empty, 1..N = palette + 1)
+```
+
+The cell-index block has long runs of equal bytes — empty space, monochrome regions — which is what deflate is good at. A 32×32 drawing with 6 colours compresses to around 200 bytes, ~400 base64 characters. Well under any browser's URL limit.
+
+```ts
+const cs = new CompressionStream("deflate-raw");
+const stream = new Blob([bytes]).stream().pipeThrough(cs);
+const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
+return base64urlEncode(compressed);
+```
+
+Decode is the same operation reversed.
+
+## pinch zoom
+
+macOS turns trackpad pinch into a `wheel` event with `ctrlKey: true`. So one handler covers pinch and ⌘/⌃+scroll:
+
+```ts
+el.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  if (e.ctrlKey || e.metaKey) {
+    const factor = Math.exp(-e.deltaY * 0.01);
+    // anchor zoom to cursor
+  } else {
+    pan({ x: -e.deltaX, y: -e.deltaY });
+  }
+}, { passive: false });
+```
+
+It needs to be a native listener with `passive: false`. React's synthetic `onWheel` is passive in modern React, which means `preventDefault()` inside it silently does nothing and the browser zooms the page instead.
+
+## features
+
+Infinite canvas. Cursor-anchored zoom from 5% to 20000%. Pen, eraser, fill, eyedropper, rectangle fill, rectangle erase. Adjustable blend slider — 0% gives you regular pixel art, 50% gives you the full liquid look. Minimap. Undo/redo. SVG export with configurable size, padding, and background. Share by URL.
+
+## the name
+
+pixel + gel. Gels are soft solids that flow. _To gel_ also means _to coalesce_.
+
+Source: [github.com/d4mr/pixgel](https://github.com/d4mr/pixgel). The renderer is one file, under 200 lines.
+
+Inspired by [@marckohlbrugge](https://x.com/marckohlbrugge/status/2053616489467629939). If you make something with it, [say hi](https://x.com/earth_ish).

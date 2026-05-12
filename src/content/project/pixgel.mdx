@@ -1,0 +1,25 @@
+---
+name: "pixgel"
+tagline: "Liquid pixel art editor with smooth SVG export"
+description: "A pixel art editor where pixels bead together like ferrofluid. Diagonal cells fuse with a capillary pinch. Export anywhere as SVG, share an entire drawing in a single URL."
+coverImage:
+  src: "../../assets/projects/pixgel/cover.jpg"
+  alt: "pixgel — sharp pixels on the left, the same cells blended into a single liquid shape on the right"
+images:
+  - src: "../../assets/projects/pixgel/comparison.svg"
+    alt: "Sharp vs pixgel — same five cells, two renderings"
+year: "2026"
+status: "active"
+tags: ["typescript", "react", "vite", "svg", "cloudflare-workers", "browser", "open-source"]
+links:
+  github: "https://github.com/d4mr/pixgel"
+  demo: "https://pixgel.d4mr.com"
+featured: true
+featuredOrder: 2
+---
+
+A pixel art editor where pixels don't sit as hard squares. They bead together like droplets of mercury. Two cells touching only at a corner pinch into one shape via a smooth capillary bridge.
+
+The geometry isn't invented. Three rules per corner, mirroring how soap films meet at [Plateau borders](https://en.wikipedia.org/wiki/Plateau%27s_laws) and how ferrofluid drops fuse under a magnetic field. Authored on a discrete grid, rendered with the surface tension of a liquid.
+
+Runs entirely in the browser. SVG export at any resolution. Share-by-URL packs the whole drawing into the URL fragment via `deflate-raw` — no backend, no accounts. Built on Cloudflare Workers Static Assets.
