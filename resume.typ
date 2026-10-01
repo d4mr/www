@@ -59,7 +59,7 @@
 
 #v(2pt)
 
-Systems engineer, currently on the Rollups Team at #link("https://conduit.xyz")[Conduit]. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://www.linkedin.com/posts/third-web_american-express-launched-amex-passport-activity-7373754069758201856-2yeu/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). 4 years shipping production systems: transaction infrastructure, cryptography, and protocol tooling.
+Systems engineer on the Rollups Team at #link("https://conduit.xyz")[Conduit], operating and upgrading 100+ production rollups. Co-authored #link("https://eips.ethereum.org/EIPS/eip-7518")[ERC-7518]. Built the transaction backend powering #link("https://www.linkedin.com/posts/third-web_american-express-launched-amex-passport-activity-7373754069758201856-2yeu/")[American Express's NFT program]. Won #link("https://devfolio.co/projects/zkrail-5702")[ETHIndia 2024] (2,500+ hackers, 36 hours). Writing code for 14 years, 5 of them shipping production systems: rollup and transaction infrastructure, cryptography, and protocol tooling.
 
 #section("Experience")
 
@@ -69,7 +69,11 @@ Systems engineer, currently on the Rollups Team at #link("https://conduit.xyz")[
   location: "Remote",
   date: "Apr 2026 – Present"
 )[
-  - Working on rollup infrastructure.
+  - Operate and upgrade a fleet of 100+ production rollups (OP Stack and Arbitrum Orbit) on Kubernetes: GitOps releases staged from canary to testnets to mainnets, with rendered-diff verification before anything reaches a mainnet.
+  - Own OP Stack client upgrades end to end: rebase Conduit's forks of the node, batcher and challenger onto each upstream release, re-work patches where upstream has moved, and take mandatory hardfork releases fleet-wide on schedule.
+  - On-call for production incidents: trace chain stalls, sync failures and settlement issues from metrics and logs down to client source, separate cause from symptom under time pressure, and turn each fix into a chart default or an alert so it does not recur.
+  - Designed and built a stateless Rust service that stands in for a full node as the sync peer for customer-run nodes, speaking Ethereum's execution and consensus p2p protocols from a rolling in-memory window. Took it from design to fleet-wide production and retired the service it replaced.
+  - Built on-chain security monitoring (Go) that alerts on contract upgrades, ownership changes and large fund movements across L1 and L2, enabled by default for every rollup. Hardened the audit, logging and alerting of an encrypted data-availability service.
 ]
 
 #entry(
@@ -158,7 +162,9 @@ Systems engineer, currently on the Rollups Team at #link("https://conduit.xyz")[
 
   *Languages* / Rust, Go, TypeScript, Solidity
 
-  *Infrastructure* / PostgreSQL, Redis, Kafka, AWS Nitro Enclaves, Cloudflare (Workers, D1, R2, Durable Objects, Queues)
+  *Rollups* / OP Stack (op-node, op-batcher, op-challenger, op-reth), Arbitrum Nitro, devp2p, libp2p
+
+  *Infrastructure* / Kubernetes, Helm, Argo CD, Prometheus, Grafana, PostgreSQL, Redis, Kafka, AWS Nitro Enclaves, Cloudflare (Workers, D1, R2, Durable Objects, Queues)
 
   *Cryptography* / ZK (Halo 2, Noir), Zcash/Orchard, WASM
 
