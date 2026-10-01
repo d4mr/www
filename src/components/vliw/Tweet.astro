@@ -12,8 +12,18 @@ const { id } = Astro.props;
 let tweet;
 let error = false;
 
+// The syndication API omits entity arrays that are empty; react-tweet iterates them unconditionally.
+const withEntities = <T extends { entities?: Record<string, unknown> }>(t: T | undefined) => {
+  if (!t) return t;
+  t.entities = { hashtags: [], user_mentions: [], urls: [], symbols: [], ...t.entities };
+  return t;
+};
+
 try {
   tweet = await getTweet(id);
+  withEntities(tweet);
+  withEntities(tweet?.quoted_tweet);
+  withEntities(tweet?.parent);
 } catch (e) {
   console.error(`Failed to fetch tweet ${id}:`, e);
   error = true;
