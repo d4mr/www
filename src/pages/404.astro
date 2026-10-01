@@ -1,0 +1,25 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Base title="Not found | d4mr" description="This page does not exist.">
+  <div class="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <Header activeSection="" />
+
+    <section class="min-h-[41vh] animate-fade-up stagger-1">
+      <p class="font-serif text-lg md:text-xl leading-relaxed font-light">
+        Nothing lives at this address.
+      </p>
+      <p class="font-serif text-base md:text-lg leading-relaxed text-stone-500 mt-4">
+        Try the <a href="/" class="text-[var(--text)] link-underline">home page</a> or the
+        <a href="/posts/" class="text-[var(--text)] link-underline">writing</a>.
+      </p>
+    </section>
+
+    <div class="mt-20">
+      <Footer />
+    </div>
+  </div>
+</Base>
