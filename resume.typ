@@ -72,7 +72,7 @@ Systems engineer on the Rollups Team at #link("https://conduit.xyz")[Conduit], o
   - Operate and upgrade a fleet of 100+ production rollups (OP Stack and Arbitrum Orbit) on Kubernetes: GitOps releases staged from canary to testnets to mainnets, with rendered-diff verification before anything reaches a mainnet.
   - Own OP Stack client upgrades end to end: rebase Conduit's forks of the node, batcher and challenger onto each upstream release, re-work patches where upstream has moved, and take mandatory hardfork releases fleet-wide on schedule.
   - On-call for production incidents: trace chain stalls, sync failures and settlement issues from metrics and logs down to client source, separate cause from symptom under time pressure, and turn each fix into a chart default or an alert so it does not recur.
-  - Designed and built a stateless Rust service that stands in for a full node as the sync peer for customer-run nodes, speaking Ethereum's execution and consensus p2p protocols from a rolling in-memory window. Took it from design to fleet-wide production and retired the service it replaced.
+  - Designed and built a stateless Rust service that stands in for a full node as the sync peer for customer-run nodes, speaking Ethereum's execution and consensus p2p protocols from a week of chain history held in memory, with no database or disk. Took it from design to production on 30+ chains at about 10x cheaper than a node per chain, and retired the service it replaced.
   - Built on-chain security monitoring (Go) that alerts on contract upgrades, ownership changes and large fund movements across L1 and L2, enabled by default for every rollup. Hardened the audit, logging and alerting of an encrypted data-availability service.
 ]
 
