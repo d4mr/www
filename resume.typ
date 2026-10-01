@@ -118,6 +118,8 @@ Systems engineer on the Rollups Team at #link("https://conduit.xyz")[Conduit], o
   - Built decentralized censorship-resistant podcasting platform using IPFS, Node.js, and Ethereum. (Company shut down)
 ]
 
+// Experience fills page 1; start Projects on page 2 so the heading is not orphaned
+#pagebreak(weak: true)
 #section("Projects")
 
 #entry(
