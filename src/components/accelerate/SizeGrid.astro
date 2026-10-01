@@ -1,0 +1,58 @@
+---
+// Which matrix sizes fault under Guard Malloc (one run each, classic dgeqrf_).
+const pts = [
+  { m: 1000, n: 500, bad: false }, { m: 1200, n: 600, bad: false }, { m: 1500, n: 750, bad: false },
+  { m: 2000, n: 1000, bad: false }, { m: 3000, n: 600, bad: false }, { m: 1000, n: 1000, bad: false },
+  { m: 3000, n: 800, bad: true }, { m: 3000, n: 1000, bad: true }, { m: 4000, n: 1000, bad: true },
+  { m: 5443, n: 2100, bad: true },
+];
+const W = 600, H = 320, pad = { l: 64, r: 24, t: 20, b: 46 };
+const x = (n: number) => pad.l + (n / 2400) * (W - pad.l - pad.r);
+const y = (m: number) => H - pad.b - (m / 6000) * (H - pad.t - pad.b);
+const danger = "var(--color-danger, #ef4444)";
+const xt = [0, 500, 1000, 1500, 2000], yt = [0, 1000, 2000, 3000, 4000, 5000, 6000];
+// Curve m * n = 2.2 million, between the largest clean size (2.0M) and the smallest faulting one (2.4M).
+const curve = Array.from({ length: 60 }, (_, i) => 380 + i * 34)
+  .map((n, i) => `${i ? "L" : "M"} ${x(n).toFixed(1)} ${y(2.2e6 / n).toFixed(1)}`).join(" ");
+---
+
+<figure class="my-8">
+  <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-2xl mx-auto" role="img"
+    aria-label="Scatter plot of matrix sizes that fault and sizes that do not">
+    <g font-family="var(--font-mono)" font-size="11" fill="currentColor">
+      {yt.map((t) => (
+        <g>
+          <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="currentColor" stroke-opacity="0.1" stroke-dasharray="4 4" />
+          <text x={pad.l - 10} y={y(t)} text-anchor="end" dominant-baseline="middle" opacity="0.6">{t}</text>
+        </g>
+      ))}
+      {xt.map((t) => (
+        <text x={x(t)} y={H - pad.b + 18} text-anchor="middle" opacity="0.6">{t}</text>
+      ))}
+      <text x={(W + pad.l - pad.r) / 2} y={H - 6} text-anchor="middle" opacity="0.6">columns (n)</text>
+      <text x="14" y={(H - pad.b + pad.t) / 2} text-anchor="middle" opacity="0.6"
+        transform={`rotate(-90 14 ${(H - pad.b + pad.t) / 2})`}>rows (m)</text>
+      <path d={curve} fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="6 5" />
+      <text x={x(1500)} y={y(2.2e6 / 1500) - 10} opacity="0.5">m × n ≈ 2.2 million</text>
+      {pts.map((p) => p.bad ? (
+        <g stroke={danger} stroke-width="2.5" stroke-linecap="round">
+          <line x1={x(p.n) - 6} y1={y(p.m) - 6} x2={x(p.n) + 6} y2={y(p.m) + 6} />
+          <line x1={x(p.n) - 6} y1={y(p.m) + 6} x2={x(p.n) + 6} y2={y(p.m) - 6} />
+        </g>
+      ) : (
+        <circle cx={x(p.n)} cy={y(p.m)} r="5.5" fill="none" stroke="currentColor" stroke-width="2" />
+      ))}
+      <g transform={`translate(${x(1150)} ${pad.t + 2})`}>
+        <circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" stroke-width="2" />
+        <text x="20" y="10">ran clean</text>
+        <g stroke={danger} stroke-width="2.5" stroke-linecap="round">
+          <line x1="1" y1="21" x2="11" y2="31" /><line x1="1" y1="31" x2="11" y2="21" />
+        </g>
+        <text x="20" y="30" fill={danger}>faulted in DGEQRF</text>
+      </g>
+    </g>
+  </svg>
+  <figcaption class="mt-2 text-center font-mono text-xs text-[var(--text-faint)]">
+    Ten sizes, one Guard Malloc run each. The dashed curve is my guess at the boundary, not something I measured.
+  </figcaption>
+</figure>

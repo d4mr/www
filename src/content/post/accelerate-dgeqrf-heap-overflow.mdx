@@ -1,0 +1,167 @@
+---
+title: "A heap overflow in Accelerate's DGEQRF on a macOS 27 beta"
+publishDate: 2026-10-01
+description: "Random crashes in a PyTorch job on my Mac turned out to be Apple's QR routine writing past a buffer. What I found and how I narrowed it down."
+tags: ["debugging", "macos", "pytorch", "lapack"]
+---
+
+import Callout from "../../components/Callout.astro";
+import Peel from "../../components/accelerate/Peel.astro";
+import CrashRates from "../../components/accelerate/CrashRates.astro";
+import HeapMap from "../../components/accelerate/HeapMap.astro";
+import SizeGrid from "../../components/accelerate/SizeGrid.astro";
+
+<Callout title="Short version">
+  On macOS 27.0 build 26A5368g (a beta), Accelerate's `dgeqrf` runs past the end of a heap buffer it allocates internally, for matrices larger than roughly 3000 × 800. The call returns a correct answer, and something else in the process breaks later. A 20-line C program reproduces it every time under Guard Malloc. I have not tested the released 27.0 or the newer betas.
+</Callout>
+
+## What I Was Doing
+
+I was running an ML experiment on my MacBook: a 4B-parameter model on the GPU through PyTorch's MPS backend, plus a fitting step that solves 576 least-squares problems per run on the CPU. MPS has no `lstsq`, so those go through `torch.linalg.lstsq` on CPU tensors.
+
+The job died a few minutes in. No Python exception, just a segfault. I reran it and it finished. I ran it again and it died somewhere else.
+
+I did this hunt with Claude Code running most of the experiments.
+
+## The Crashes Made No Sense
+
+Over the next dozen runs the process died in all of these places:
+
+- inside a plain matrix multiply
+- inside `torch.exp`
+- while moving a tensor to the GPU
+- entering a `torch.no_grad()` block
+- at interpreter exit, inside PyTorch's operator registry
+- with `objc: Method cache corrupted. This may be a message to an invalid object, or a memory error somewhere else.`
+
+Exit codes were a mix of SIGSEGV, SIGBUS, SIGTRAP and SIGABRT.
+
+When the same program dies in a different, unrelated place each time, the place it dies is not where the bug is. Something had damaged the heap earlier, and the crash was whoever touched the damage first.
+
+## Wrong Guesses
+
+There were four wrong theories before the right one.
+
+1. **bfloat16 on MPS.** The first stack trace pointed at a bfloat16 matmul on the GPU. Casting to float32 first changed nothing.
+2. **Two processes sharing the GPU.** I had a second job running. Stopping it changed nothing.
+3. **The number format in general.** Loading the model in float16 changed nothing.
+4. **Huge attention tensors.** One forward pass built multi-gigabyte tensors, and MPS has had trouble with those. Chunking the pass changed nothing.
+
+What finally helped was moving the fitting code entirely onto the CPU. The crashes got *more* frequent, and now they were landing in code that never touched the GPU. So the GPU was not involved at all.
+
+## Taking Layers Off
+
+From there it was bisection. Remove a layer, check whether the bug is still there.
+
+<Peel />
+
+**PyTorch alone.** I tried each least-squares route in a fresh process, no model, no GPU: build a 5443 × 2100 matrix, solve, repeat four times.
+
+<CrashRates />
+
+Everything that crashed goes through a QR factorisation. `gelsy` uses a different one (with column pivoting) and Cholesky uses none. This also reproduced with nothing but `torch.linalg.qr` on a random Gaussian matrix:
+
+```python
+import torch
+torch.manual_seed(0)
+for i in range(4):
+    A = torch.randn(5443, 2100, dtype=torch.float64)
+    Q, R = torch.linalg.qr(A)
+    assert (Q @ R - A).abs().max() < 1e-3
+print("ok")
+```
+
+One in five runs died with the default thread count, two in five with a single thread. Sometimes after printing `ok`.
+
+**No PyTorch.** PyTorch's macOS wheels use Apple's Accelerate framework for LAPACK, so the next step was calling `dgeqrf_` myself through `ctypes`, with 32 KB of a marker value on both sides of every buffer I passed in. In three of eight runs either the process died or the markers around my buffers had been replaced with numbers that looked like factorisation intermediates. The same happened with NumPy never imported.
+
+**No Python.** A C program doing the same thing came back clean, dozens of times in a row, and I nearly concluded Python was the problem. The difference turned out to be how the heap gets reused. So I wrote a C version that calls `dgeqrf_` once, fills the heap with 6000 marked blocks, calls again, and scans the blocks. In 3 of 12 runs, a block `dgeqrf_` was never given had its first 64 KB overwritten.
+
+## Guard Malloc
+
+Intermittent is annoying to report. macOS ships a tool that makes this kind of bug deterministic: Guard Malloc places every allocation so that it ends at a page boundary, with an unmapped page after it. Run one element past the end and you fault on the spot, in the code that did it.
+
+```c
+// clang -O1 geqrf_min.c -framework Accelerate -o geqrf_min
+// DYLD_INSERT_LIBRARIES=/usr/lib/libgmalloc.dylib ./geqrf_min 3000 1000
+#include <stdio.h>
+#include <stdlib.h>
+
+extern void dgeqrf_(int *m, int *n, double *a, int *lda, double *tau,
+                    double *work, int *lwork, int *info);
+
+int main(int argc, char **argv) {
+    int m = atoi(argv[1]), n = atoi(argv[2]);
+    int extra = argc > 3 ? atoi(argv[3]) : 0;
+    double *A = malloc((size_t)m * n * sizeof(double)), *tau = malloc(n * sizeof(double));
+    srand(1);
+    for (size_t i = 0; i < (size_t)m * n; i++) A[i] = (double)rand() / RAND_MAX - 0.5;
+    int info = 0, lwork = -1; double wkopt = 0;
+    dgeqrf_(&m, &n, A, &m, tau, &wkopt, &lwork, &info);   // ask how much workspace it wants
+    lwork = (int)wkopt;
+    double *work = malloc(((size_t)lwork + extra) * sizeof(double));
+    fprintf(stderr, "A    = [%p, %p)\n", (void *)A, (void *)(A + (size_t)m * n));
+    fprintf(stderr, "tau  = [%p, %p)\n", (void *)tau, (void *)(tau + n));
+    fprintf(stderr, "work = [%p, %p)  lwork=%d\n", (void *)work, (void *)(work + lwork + extra), lwork);
+    dgeqrf_(&m, &n, A, &m, tau, work, &lwork, &info);     // factorise
+    fprintf(stderr, "returned info=%d\n", info);
+    return 0;
+}
+```
+
+One workspace query, one factorisation. Under Guard Malloc it never reaches the last line:
+
+```
+A    = [0x1245b4a00, 0x125c98000)
+tau  = [0x125ca20c0, 0x125ca4000)
+work = [0x125cad800, 0x125cec000)  lwork=32000
+Segmentation fault: 11
+```
+
+The crash report puts the faulting thread inside `libLAPACK.dylib`, in `DGEQRF`, called from `main`.
+
+## Whose Buffer Is It
+
+The obvious suspect in a LAPACK crash is the workspace: you ask the routine how much scratch space it needs, allocate that, and pass it in. If the routine under-reports, it overruns your `work` array.
+
+That is not what happens here. The faulting address is not the end of `A`, `tau` or `work`. It is the end of a block allocated after all three, which my program never asked for: 576 KB past the end of `work` when n = 1000, and 1.19 MB past it when n = 2100.
+
+To be sure, I gave `work` an extra 4096 doubles, then an extra 70,000. The fault stayed the same distance past the end. The workspace I pass in is not the buffer being overrun.
+
+<HeapMap />
+
+So `dgeqrf` allocates scratch memory of its own and runs past the end of it. Without Guard Malloc there is no unmapped page there, just whatever `malloc` handed out next. That gets overwritten, the factorisation returns `info = 0` with a correct Q and R, and the damage surfaces later in whoever owned that memory.
+
+## Which Sizes
+
+I ran ten sizes under Guard Malloc, once each.
+
+<SizeGrid />
+
+Small problems are fine and big ones are not, which would fit a different code path for large matrices. That part is a guess. Other things I checked:
+
+- The newer interface, `dgeqrf$NEWLAPACK`, faults the same way as the classic `dgeqrf_`.
+- Setting `VECLIB_MAXIMUM_THREADS=1` does not avoid it (2 of 12 runs corrupted, against 3 of 12).
+
+## What I Don't Know
+
+- **Whether released macOS is affected.** My machine is on a beta build of 27.0 (26A5368g). The release is 26A428 and I have not tested it, or the 27.2 betas.
+- **Which other routines are involved.** There is an open SciPy issue, [scipy/scipy#26145](https://github.com/scipy/scipy/issues/26145), reporting intermittent segfaults in Accelerate's `dpotrf` (Cholesky) on the 27.0 release candidate, also with a native reproducer under Guard Malloc. It might be the same defect. I can't tell from the outside.
+- **Whether results can be silently wrong.** In my runs QR came back correct. But [another project](https://github.com/quicophy/mdopt/pull/582) reports wrong numerical results with Accelerate-linked NumPy and SciPy that went away on OpenBLAS, and stray writes into someone else's memory can certainly do that.
+
+## What I Did About It
+
+For my own work I threw out every number computed before I found this.
+
+My first fix was swapping `torch.linalg.lstsq` for `scipy.linalg.lstsq`. That stopped the crashes in my tests, but it only looked like a fix: NumPy and SciPy wheels built for macOS 14 and later link Accelerate too, so it still calls the same library. I'm moving the solves to OpenBLAS-linked builds instead.
+
+If you are on macOS 27 and a numerical Python job is crashing in places that make no sense, check whether it does a QR, a least-squares solve or a Cholesky on a matrix with a few million entries. Then try the reproducer above.
+
+The steps that got me here, in order:
+
+1. Crashes in unrelated places mean the heap was damaged earlier. Stop reading the stack traces.
+2. Move work off the suspect (the GPU) and see whether the bug follows. It did not.
+3. Test each solver in a fresh process and look for what the failing ones share.
+4. Call the library underneath directly, with marker values around every buffer.
+5. Rewrite it in C to take the language runtime out.
+6. Run it under Guard Malloc to turn "sometimes" into "always", and read the fault address.

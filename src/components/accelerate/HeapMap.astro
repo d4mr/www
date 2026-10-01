@@ -1,0 +1,42 @@
+---
+// Heap layout during dgeqrf_(3000 x 1000): the caller's three buffers, the
+// scratch block the routine allocates itself, and where the stray access lands.
+const danger = "var(--color-danger, #ef4444)";
+---
+
+<figure class="my-8">
+  <svg viewBox="0 0 640 250" class="w-full max-w-2xl mx-auto" role="img"
+    aria-label="Heap layout showing dgeqrf running past the end of its own scratch buffer">
+    <g font-family="var(--font-mono)" font-size="11" fill="currentColor">
+      <text x="20" y="22" opacity="0.6">what you hand to dgeqrf</text>
+      <rect x="20" y="32" width="250" height="44" fill="none" stroke="currentColor" stroke-width="1.5" />
+      <text x="145" y="52" text-anchor="middle">A</text>
+      <text x="145" y="67" text-anchor="middle" opacity="0.6">3000 × 1000 · 24 MB</text>
+      <rect x="280" y="32" width="50" height="44" fill="none" stroke="currentColor" stroke-width="1.5" />
+      <text x="305" y="52" text-anchor="middle">tau</text>
+      <text x="305" y="67" text-anchor="middle" opacity="0.6">8 KB</text>
+      <rect x="340" y="32" width="110" height="44" fill="none" stroke="currentColor" stroke-width="1.5" />
+      <text x="395" y="52" text-anchor="middle">work</text>
+      <text x="395" y="67" text-anchor="middle" opacity="0.6">256 KB</text>
+
+      <text x="20" y="122" opacity="0.6">what it allocates for itself</text>
+      <rect x="20" y="132" width="330" height="44" fill="currentColor" fill-opacity="0.08" stroke="currentColor"
+        stroke-width="1.5" stroke-dasharray="5 4" />
+      <text x="185" y="152" text-anchor="middle">internal scratch</text>
+      <text x="185" y="167" text-anchor="middle" opacity="0.6">never visible to the caller</text>
+
+      <rect x="350" y="132" width="270" height="44" fill={danger} fill-opacity="0.12" stroke={danger} stroke-width="1.5" />
+      <text x="485" y="152" text-anchor="middle" fill={danger}>whatever malloc put next</text>
+      <text x="485" y="167" text-anchor="middle" fill={danger} opacity="0.8">your tensors, Python objects, …</text>
+
+      <line x1="40" y1="200" x2="430" y2="200" stroke={danger} stroke-width="2" />
+      <path d="M 430 195 L 442 200 L 430 205 Z" fill={danger} />
+      <line x1="350" y1="124" x2="350" y2="214" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3" opacity="0.6" />
+      <text x="40" y="222" fill={danger}>keeps going past the end</text>
+      <text x="356" y="232" opacity="0.6">end of scratch = fault address</text>
+    </g>
+  </svg>
+  <figcaption class="mt-2 text-center font-mono text-xs text-[var(--text-faint)]">
+    The fault is at the end of a block the caller never allocated, 576 KB past the end of work for n = 1000.
+  </figcaption>
+</figure>

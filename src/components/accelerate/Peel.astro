@@ -1,0 +1,28 @@
+---
+// The bisection: remove one layer at a time and see if the bug survives.
+const steps = [
+  { layer: "The experiment", detail: "model on the GPU, 576 CPU solves per run", result: "died at random points" },
+  { layer: "PyTorch alone", detail: "torch.linalg.qr on a random matrix", result: "1 to 2 of 5 runs" },
+  { layer: "No PyTorch", detail: "Python calling dgeqrf_ through ctypes", result: "3 of 8 runs" },
+  { layer: "No Python", detail: "C, heap filled with marked blocks", result: "3 of 12 runs" },
+  { layer: "C + Guard Malloc", detail: "one call, 3000 × 1000", result: "every run" },
+];
+---
+
+<figure class="my-8 not-prose">
+  <div class="mx-auto max-w-2xl border border-[var(--border)] bg-[var(--bg-paper)] font-mono text-xs">
+    {steps.map((s, i) => (
+      <div class={`flex items-center gap-4 px-4 py-3 ${i ? "border-t border-[var(--border)]" : ""}`}
+        style={`padding-left: ${1 + i * 0.9}rem`}>
+        <div class="flex-1">
+          <div class="text-[var(--text)]">{s.layer}</div>
+          <div class="text-[var(--text-faint)]">{s.detail}</div>
+        </div>
+        <div class="text-right" style="color: var(--color-danger, #ef4444)">{s.result}</div>
+      </div>
+    ))}
+  </div>
+  <figcaption class="mt-2 text-center font-mono text-xs text-[var(--text-faint)]">
+    Each step removes a layer. The bug survives all of them.
+  </figcaption>
+</figure>

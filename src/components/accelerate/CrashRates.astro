@@ -1,0 +1,37 @@
+---
+// Fraction of fresh processes that died, solving a 5443 x 2100 problem four times each.
+const rows = [
+  { label: "torch.linalg.lstsq  gels", k: 4, n: 4 },
+  { label: "torch.linalg.lstsq  gelsd", k: 3, n: 6 },
+  { label: "torch.linalg.qr", k: 3, n: 6 },
+  { label: "torch.linalg.lstsq  gelss", k: 1, n: 4 },
+  { label: "torch.linalg.lstsq  gelsy", k: 0, n: 6 },
+  { label: "torch Cholesky (normal eq.)", k: 0, n: 6 },
+  { label: "numpy.linalg.lstsq", k: 0, n: 6 },
+  { label: "scipy.linalg.lstsq  gelsd", k: 0, n: 6 },
+];
+const W = 600, rowH = 30, left = 236, right = 70, top = 10;
+const H = top + rows.length * rowH + 10;
+const bw = W - left - right;
+const danger = "var(--color-danger, #ef4444)";
+---
+
+<figure class="my-8">
+  <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-2xl mx-auto" role="img"
+    aria-label="Bar chart of how often each solver crashed the process">
+    <g font-family="var(--font-mono)" font-size="11" fill="currentColor">
+      {rows.map((r, i) => (
+        <g transform={`translate(0 ${top + i * rowH})`}>
+          <text x={left - 12} y={rowH / 2} text-anchor="end" dominant-baseline="middle">{r.label}</text>
+          <rect x={left} y="7" width={bw} height={rowH - 14} fill="currentColor" fill-opacity="0.07" />
+          <rect x={left} y="7" width={(bw * r.k) / r.n} height={rowH - 14} fill={danger} fill-opacity="0.75" />
+          <text x={left + bw + 10} y={rowH / 2} dominant-baseline="middle" fill={r.k ? danger : "currentColor"}
+            opacity={r.k ? 1 : 0.6}>{r.k} of {r.n}</text>
+        </g>
+      ))}
+    </g>
+  </svg>
+  <figcaption class="mt-2 text-center font-mono text-xs text-[var(--text-faint)]">
+    Processes that died, out of fresh runs. Zero crashes in six runs is not proof of safety.
+  </figcaption>
+</figure>
